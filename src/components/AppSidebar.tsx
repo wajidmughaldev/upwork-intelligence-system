@@ -1,5 +1,4 @@
 import React from 'react';
-import { LayoutDashboard, Briefcase, FileText, UserCheck, Settings, ShieldCheck } from 'lucide-react';
 
 export type NavItem = 'dashboard' | 'jobs' | 'analysis' | 'proposal' | 'review' | 'applications' | 'profile' | 'settings';
 
@@ -7,84 +6,199 @@ interface AppSidebarProps {
   currentTab: NavItem;
   onSelectTab: (tab: NavItem) => void;
   applicationsCount: number;
+  jobsCount?: number;
+  onSync?: () => void;
 }
 
-export const AppSidebar: React.FC<AppSidebarProps> = ({ currentTab, onSelectTab, applicationsCount }) => {
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'jobs', label: 'Jobs', icon: Briefcase },
-    { id: 'applications', label: 'Applications', icon: FileText, badge: applicationsCount },
-    { id: 'profile', label: 'Profile Intelligence', icon: UserCheck },
-    { id: 'settings', label: 'Settings', icon: Settings },
-  ];
+export const AppSidebar: React.FC<AppSidebarProps> = ({
+  currentTab,
+  onSelectTab,
+  applicationsCount,
+  jobsCount = 18,
+  onSync,
+}) => {
+  const isJobsActive = currentTab === 'jobs' || currentTab === 'analysis' || currentTab === 'proposal' || currentTab === 'review';
 
   return (
-    <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col min-h-screen border-r border-slate-800 shrink-0">
-      {/* Brand Header */}
-      <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-        <div>
-          <h1 className="text-base font-semibold text-white tracking-tight flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
-            Upwork Intelligence
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">Opportunity & Proposal Suite</p>
-        </div>
-      </div>
+    <aside className="fixed top-0 left-0 h-screen w-64 border-r border-slate-200 bg-white flex flex-col justify-between z-30 select-none">
+      <div className="h-full flex flex-col justify-between p-4">
+        {/* Upper Section */}
+        <div className="space-y-6">
+          {/* Brand Header */}
+          <div className="flex items-center justify-between px-2 pt-1 pb-1">
+            <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => onSelectTab('dashboard')}>
+              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-base shadow-sm">
+                <span className="material-symbols-outlined text-[18px]">psychology</span>
+              </div>
+              <div>
+                <div className="text-sm font-bold font-headline text-slate-900 tracking-tight leading-none">Opportunity Intel</div>
+                <div className="text-[11px] font-medium text-slate-500 mt-1 leading-none">Upwork Pro Engine</div>
+              </div>
+            </div>
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>
+              Sync
+            </span>
+          </div>
 
-      {/* Nav Menu */}
-      <nav className="flex-1 p-3 space-y-1">
-        <div className="px-3 py-2 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-          Workspace Navigation
-        </div>
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = currentTab === item.id || 
-            (item.id === 'jobs' && (currentTab === 'analysis' || currentTab === 'proposal' || currentTab === 'review'));
-          return (
+          {/* Sync Upwork CTA Button */}
+          <div className="px-1">
             <button
-              key={item.id}
-              onClick={() => onSelectTab(item.id as NavItem)}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              onClick={onSync}
+              className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2 px-3 rounded-lg shadow-sm transition-colors duration-150 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-sm">sync</span>
+              <span>Sync Upwork</span>
+            </button>
+          </div>
+
+          {/* Primary Navigation */}
+          <nav className="space-y-1">
+            {/* 1. Dashboard */}
+            <button
+              onClick={() => onSelectTab('dashboard')}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-xs transition-colors duration-150 cursor-pointer ${
+                currentTab === 'dashboard'
+                  ? 'bg-blue-50 text-blue-600 font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                <span>{item.label}</span>
-              </div>
-              {item.badge !== undefined && item.badge > 0 && (
-                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                  isActive ? 'bg-blue-800 text-blue-100' : 'bg-slate-800 text-slate-300'
-                }`}>
-                  {item.badge}
+                <span
+                  className="material-symbols-outlined text-[18px]"
+                  style={currentTab === 'dashboard' ? { fontVariationSettings: "'FILL' 1" } : {}}
+                >
+                  dashboard
                 </span>
-              )}
+                <span>Dashboard</span>
+              </div>
             </button>
-          );
-        })}
-      </nav>
 
-      {/* Safety Notice Footer */}
-      <div className="p-4 m-3 bg-slate-800/80 rounded-lg border border-slate-700/60">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 mb-1">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          User Confirmation Mode
-        </div>
-        <p className="text-[11px] text-slate-400 leading-relaxed">
-          Proposals require manual confirmation. No auto-submissions.
-        </p>
-      </div>
+            {/* 2. Jobs */}
+            <button
+              onClick={() => onSelectTab('jobs')}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-xs transition-colors duration-150 cursor-pointer ${
+                isJobsActive
+                  ? 'bg-blue-50 text-blue-600 font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="material-symbols-outlined text-[18px]"
+                  style={isJobsActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+                >
+                  work
+                </span>
+                <span>Jobs</span>
+              </div>
+              <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${
+                isJobsActive ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
+              }`}>
+                {jobsCount}
+              </span>
+            </button>
 
-      {/* User Footer */}
-      <div className="p-4 border-t border-slate-800 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-500/30">
-          W
+            {/* 3. Applications */}
+            <button
+              onClick={() => onSelectTab('applications')}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-xs transition-colors duration-150 cursor-pointer ${
+                currentTab === 'applications'
+                  ? 'bg-blue-50 text-blue-600 font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="material-symbols-outlined text-[18px]"
+                  style={currentTab === 'applications' ? { fontVariationSettings: "'FILL' 1" } : {}}
+                >
+                  send
+                </span>
+                <span>Applications</span>
+              </div>
+              <span className={`px-1.5 py-0.5 rounded-full font-bold text-[10px] leading-none ${
+                currentTab === 'applications' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'
+              }`}>
+                {applicationsCount}
+              </span>
+            </button>
+
+            {/* 4. Profile Intelligence */}
+            <button
+              onClick={() => onSelectTab('profile')}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-xs transition-colors duration-150 cursor-pointer ${
+                currentTab === 'profile'
+                  ? 'bg-blue-50 text-blue-600 font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="material-symbols-outlined text-[18px]"
+                  style={currentTab === 'profile' ? { fontVariationSettings: "'FILL' 1" } : {}}
+                >
+                  psychology
+                </span>
+                <span>Profile Intelligence</span>
+              </div>
+            </button>
+
+            {/* 5. Settings */}
+            <button
+              onClick={() => onSelectTab('settings')}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg font-medium text-xs transition-colors duration-150 cursor-pointer ${
+                currentTab === 'settings'
+                  ? 'bg-blue-50 text-blue-600 font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="material-symbols-outlined text-[18px]"
+                  style={currentTab === 'settings' ? { fontVariationSettings: "'FILL' 1" } : {}}
+                >
+                  settings
+                </span>
+                <span>Settings</span>
+              </div>
+            </button>
+          </nav>
         </div>
-        <div className="truncate">
-          <p className="text-xs font-medium text-white truncate">Wajid (Freelancer)</p>
-          <p className="text-[11px] text-emerald-400 font-medium">Upwork: Connected</p>
+
+        {/* Lower Navigation & User Badge */}
+        <div className="pt-4 border-t border-slate-200 space-y-3">
+          <div className="space-y-1">
+            <button
+              onClick={() => alert('Documentation: Complete reference for Upwork Opportunity Intelligence, MCP schemas, and AI prompts.')}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150 text-left cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">menu_book</span>
+              <span>Documentation</span>
+            </button>
+            <button
+              onClick={() => alert('Help & Support: For assistance or troubleshooting contact support@upwork-intel.internal')}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150 text-left cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">help</span>
+              <span>Help &amp; Support</span>
+            </button>
+          </div>
+
+          {/* User Profile Card */}
+          <div
+            onClick={() => onSelectTab('profile')}
+            className="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100/80 transition-colors"
+          >
+            <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-semibold text-xs flex items-center justify-center shrink-0 ring-1 ring-slate-300">
+              AR
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-slate-900 truncate">Alex Rivera</p>
+              <p className="text-[10px] text-slate-500 truncate">Pro Freelancer • $125/hr</p>
+            </div>
+            <span className="material-symbols-outlined text-slate-400 text-sm">unfold_more</span>
+          </div>
         </div>
       </div>
     </aside>

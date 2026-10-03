@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-slate-50" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Opportunity Intel - Job Analysis</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {},
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          },
+          fontFamily: {
+            headline: ["Inter", "sans-serif"],
+            display: ["Inter", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            label: ["Inter", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .material-symbols-outlined.fill {
+      font-variation-settings: 'FILL' 1;
+    }
+  </style>
+</head>
+<body class="h-full font-body text-slate-900 antialiased bg-[#F8FAFC]">
+<!-- LEFT SIDEBAR COMPONENT (Source: Shared Components JSON - SideNavBar) -->
+<aside class="fixed top-0 left-0 h-screen w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between bg-white dark:bg-slate-900 z-30">
+<div class="h-full flex flex-col justify-between p-4">
+<!-- Top Section: Brand + Navigation -->
+<div class="space-y-6">
+<!-- Logo and App Title -->
+<div class="flex items-center justify-between px-2 pt-1">
+<div class="flex items-center gap-3">
+<div class="h-9 w-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm font-semibold">
+<span class="material-symbols-outlined text-white" data-icon="psychology">psychology</span>
+</div>
+<div>
+<h1 class="text-sm font-bold font-headline text-slate-900 dark:text-white tracking-tight leading-tight">Opportunity Intel</h1>
+<p class="text-xs font-medium font-body text-slate-500">Upwork Pro Engine</p>
+</div>
+</div>
+</div>
+<!-- Live Sync Pill -->
+<div class="px-2">
+<div class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200/80 text-[11px] font-medium text-slate-600">
+<div class="flex items-center gap-2">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+<span>Live Sync active</span>
+</div>
+<button class="text-blue-600 font-semibold hover:underline">Sync Upwork</button>
+</div>
+</div>
+<!-- Nav Items -->
+<nav class="space-y-1">
+<!-- Dashboard (Inactive) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Jobs (Active State mapped to current page context) -->
+<a class="flex items-center justify-between px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-medium text-xs" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined fill" data-icon="work">work</span>
+<span>Jobs</span>
+</div>
+<span class="px-1.5 py-0.5 text-[10px] font-semibold bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded">12 New</span>
+</a>
+<!-- Applications -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="send">send</span>
+<span>Applications</span>
+</a>
+<!-- Profile Intelligence -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span>Profile Intelligence</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Utilities & User Account -->
+<div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span>Documentation</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Help &amp; Support</span>
+</a>
+</div>
+<!-- User profile preview -->
+<div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center gap-3">
+<div class="h-8 w-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center font-semibold text-slate-700 text-xs">
+            AR
+          </div>
+<div class="min-w-0 flex-1">
+<p class="text-xs font-semibold text-slate-900 truncate">Alex Rivera</p>
+<p class="text-[10px] text-slate-500 truncate">Pro Freelancer • $140/hr</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-sm" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- TOP NAVBAR COMPONENT (Source: Shared Components JSON - TopNavBar) -->
+<header class="sticky top-0 right-0 h-14 border-b border-slate-200 dark:border-slate-800 w-full pl-64 bg-white dark:bg-slate-900 z-20">
+<div class="flex items-center justify-between px-6 h-14 w-full">
+<!-- Left side: Breadcrumb & Search -->
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<nav class="hidden lg:flex items-center gap-1.5 text-xs text-slate-500 font-medium whitespace-nowrap">
+<span class="hover:text-slate-800 cursor-pointer">Jobs</span>
+<span class="text-slate-300">/</span>
+<span class="hover:text-slate-800 cursor-pointer">Job Analysis</span>
+<span class="text-slate-300">/</span>
+<span class="text-slate-900 font-semibold truncate max-w-[200px]">Laravel + React SaaS Developer</span>
+</nav>
+<div class="relative w-64 lg:w-72">
+<span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-lg" data-icon="search">search</span>
+</span>
+<input class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 hover:bg-slate-100/70 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-colors" placeholder="Search saved jobs, skills..." type="text"/>
+</div>
+</div>
+<!-- Right side: Quick actions & user menu -->
+<div class="flex items-center gap-3">
+<!-- Status Pill -->
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+<span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+          Connected
+        </span>
+<!-- Primary Action -->
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="bolt">bolt</span>
+<span>Quick Match</span>
+</button>
+<div class="h-4 w-px bg-slate-200 mx-1"></div>
+<!-- Trailing Icon Actions -->
+<button class="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors relative" title="Notifications">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-blue-600 ring-2 ring-white"></span>
+</button>
+<button class="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors" title="Tune Settings">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+</button>
+<!-- User Profile Avatar -->
+<div class="ml-1 cursor-pointer">
+<img class="h-8 w-8 rounded-full border border-slate-300 object-cover" data-alt="Close up professional portrait of a senior software consultant wearing a clean minimal dark navy crewneck sweater, soft high-key studio lighting with neutral gray tones, confident and focused expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOaj9kOiSvX1bavzneUCtojL_Gvv2zXyDliv49gC0ayxSv_Y7MGGoEvBBfIU5y0P5rBdbSvEfJayq74etiXVW_acQw8fkA7ts-OGkHv2_QzCcqu5ACGNXOcVcxaOR_b_D8Rh06DwzUH95x9w3kkXCm0krW0XFx82azAMOnXLxtIWZcMLp-uKIPUwaGyRs4AorLp-T2fddkL2RO6PJva238GMWwjqdaXu6Uf0QR7G02fcno7QxpZYr1DsWlBDkQtjsZO0Ukq96WEAQw"/>
+</div>
+</div>
+</div>
+</header>
+<!-- MAIN VIEWPORT CONTENT (Padded for Left Nav and Sticky Bottom Bar) -->
+<main class="pl-64 pb-28 pt-6">
+<div class="max-w-7xl mx-auto px-6 space-y-6">
+<!-- 1. JOB DETAIL HEADER SECTION -->
+<div class="bg-white rounded-lg border border-slate-200 p-6 shadow-sm">
+<div class="flex flex-col gap-4">
+<!-- Back Link -->
+<div class="flex items-center justify-between">
+<a class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 transition-colors" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+<span>Back to Jobs</span>
+</a>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Active Opportunity
+              </span>
+<span class="text-xs text-slate-400">ID: #UP-984210</span>
+</div>
+</div>
+<!-- Title & Badges & Quick Action Cluster -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+<div>
+<div class="flex flex-wrap items-center gap-2.5 mb-2">
+<h2 class="text-xl font-bold font-headline text-slate-950 tracking-tight">Laravel + React SaaS Developer</h2>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="material-symbols-outlined text-xs fill" data-icon="verified">verified</span>
+                  Verified Payment ★ 4.9 (48 reviews)
+                </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+<span class="material-symbols-outlined text-xs" data-icon="public">public</span>
+                  United States (UTC-5)
+                </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+<span class="material-symbols-outlined text-xs" data-icon="domain">domain</span>
+                  Enterprise / Verified
+                </span>
+</div>
+<p class="text-xs text-slate-500 font-medium flex flex-wrap items-center gap-2">
+<span class="font-bold text-slate-900">$2,000 Fixed-Price</span>
+<span>•</span>
+<span>Expert Level</span>
+<span>•</span>
+<span>Posted 38m ago</span>
+<span>•</span>
+<span class="text-amber-700 font-medium">14 Connects required</span>
+<span>•</span>
+<span class="text-emerald-700 font-medium">94% hire rate</span>
+</p>
+</div>
+<!-- Quick Header Actions -->
+<div class="flex items-center gap-2 shrink-0">
+<a class="inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors" href="https://upwork.com" target="_blank">
+<span class="material-symbols-outlined text-sm" data-icon="open_in_new">open_in_new</span>
+<span>Open on Upwork</span>
+</a>
+<button class="inline-flex items-center gap-1 px-3 py-2 text-xs font-semibold text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="bookmark">bookmark</span>
+<span>Save Job</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="auto_awesome">auto_awesome</span>
+<span>Generate Proposal</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. PRIMARY SCORE CARD & OVERVIEW BENTO -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Main Score Hero (7 Cols) -->
+<div class="lg:col-span-7 bg-white rounded-lg border border-slate-200 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+<div class="flex items-center gap-5">
+<!-- Radial Score Circle -->
+<div class="relative flex items-center justify-center h-24 w-24 shrink-0">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 36 36">
+<!-- Background Circle -->
+<path class="text-slate-100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<!-- Progress Circle 92% -->
+<path class="text-emerald-500" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="92, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<div class="absolute flex flex-col items-center justify-center text-center">
+<span class="text-2xl font-bold font-headline text-slate-900">92</span>
+<span class="text-[10px] uppercase font-semibold text-slate-400">/ 100</span>
+</div>
+</div>
+<!-- Match Rating & Synopsis -->
+<div class="space-y-1.5">
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    Strong Match
+                  </span>
+<span class="text-xs font-semibold text-slate-600">Opportunity Score</span>
+</div>
+<h3 class="text-sm font-semibold text-slate-900">Top 5% match for your profile</h3>
+<p class="text-xs text-slate-600 leading-relaxed max-w-md">
+                  Direct overlap with your Laravel multi-tenant SaaS case study, past enterprise client ratings, and high budget alignment.
+                </p>
+</div>
+</div>
+</div>
+<!-- Bottom Metric Ribbons -->
+<div class="grid grid-cols-2 gap-4 mt-6 pt-5 border-t border-slate-100">
+<div class="flex items-center gap-3">
+<div class="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-lg" data-icon="trending_up">trending_up</span>
+</div>
+<div>
+<p class="text-[11px] text-slate-500 font-medium">Win Probability</p>
+<p class="text-sm font-bold text-slate-900">78% <span class="text-xs font-normal text-emerald-600">estimated interview rate</span></p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="h-9 w-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-lg" data-icon="savings">savings</span>
+</div>
+<div>
+<p class="text-[11px] text-slate-500 font-medium">Projected ROI</p>
+<p class="text-sm font-bold text-slate-900">~$142 <span class="text-xs font-normal text-slate-500">/ connect efficiency</span></p>
+</div>
+</div>
+</div>
+</div>
+<!-- 3. SCORE BREAKDOWN GRID (5 Cols) -->
+<div class="lg:col-span-5 bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<h4 class="text-xs font-bold font-headline uppercase tracking-wider text-slate-500">Signal Breakdown</h4>
+<span class="text-xs font-medium text-blue-600">8 Vector Analysis</span>
+</div>
+<div class="grid grid-cols-2 gap-x-6 gap-y-3.5 text-xs">
+<!-- Technical Match -->
+<div class="space-y-1">
+<div class="flex justify-between font-medium">
+<span class="text-slate-600">Technical Match</span>
+<span class="font-semibold text-slate-900">24/25</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-blue-600 h-1.5 rounded-full" style="width: 96%"></div>
+</div>
+</div>
+<!-- Relevant Experience -->
+<div class="space-y-1">
+<div class="flex justify-between font-medium">
+<span class="text-slate-600">Relevant Experience</span>
+<span class="font-semibold text-slate-900">14/15</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-emerald-500 h-1.5 rounded-full" style="width: 93%"></div>
+</div>
+</div>
+<!-- Portfolio Proof -->
+<div class="space-y-1">
+<div class="flex justify-between font-medium">
+<span class="text-slate-600">Portfolio Proof</span>
+<span class="font-semibold text-slate-900">14/15</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-emerald-500 h-1.5 rounded-full" style="width: 93%"></div>
+</div>
+</div>
+<!-- Client Quality -->
+<div class="space-y-1">
+<div class="flex justify-between font-medium">
+<span class="text-slate-600">Client Quality</span>
+<span class="font-semibold text-slate-900">13/15</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-blue-500 h-1.5 rounded-full" style="width: 87%"></div>
+</div>
+</div>
+<!-- Budget Fit -->
+<div class="space-y-1">
+<div class="flex justify-between font-medium">
+<span class="text-slate-600">Budget Fit</span>
+<span class="font-semibold text-slate-900">10/10</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-emerald-600 h-1.5 rounded-full" style="width: 100%"></div>
+</div>
+</div>
+<!-- Job Clarity -->
+<div class="space-y-1">
+<div class="flex justify-between font-medium">
+<span class="text-slate-600">Job Clarity</span>
+<span class="font-semibold text-slate-900">9/10</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-blue-500 h-1.5 rounded-full" style="width: 90%"></div>
+</div>
+</div>
+<!-- Connect Efficiency -->
+<div class="space-y-1">
+<div class="flex justify-between font-medium">
+<span class="text-slate-600">Connect Efficiency</span>
+<span class="font-semibold text-slate-900">4/5</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-amber-500 h-1.5 rounded-full" style="width: 80%"></div>
+</div>
+</div>
+<!-- Preferences Alignment -->
+<div class="space-y-1">
+<div class="flex justify-between font-medium">
+<span class="text-slate-600">Preferences Alignment</span>
+<span class="font-semibold text-slate-900">4/5</span>
+</div>
+<div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-amber-500 h-1.5 rounded-full" style="width: 80%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. MAIN ANALYSIS CONTENT PANELS -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Panel 1: Why This Matches You (Success Accent) -->
+<div class="bg-white rounded-lg border border-emerald-200/90 shadow-sm p-5 relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald-600" data-icon="check_circle">check_circle</span>
+<h3 class="text-sm font-bold font-headline text-slate-900">Why This Matches You</h3>
+</div>
+<span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">High Advantage</span>
+</div>
+<div class="space-y-3 text-xs text-slate-700">
+<div class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-emerald-600 text-sm mt-0.5 shrink-0" data-icon="task_alt">task_alt</span>
+<span><strong>Technical Stack Synergy:</strong> Exact match with your core specialization in Laravel 10 + React 18 SPA architecture.</span>
+</div>
+<div class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-emerald-600 text-sm mt-0.5 shrink-0" data-icon="task_alt">task_alt</span>
+<span><strong>Budget Alignment:</strong> $2,000 fixed milestone perfectly matches your target $90/hr execution velocity (approx 22-25 billable dev hours).</span>
+</div>
+<div class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-emerald-600 text-sm mt-0.5 shrink-0" data-icon="task_alt">task_alt</span>
+<span><strong>Rapid Decision-Maker:</strong> Client historically completes first hire within <strong>2.1 days</strong> of listing creation.</span>
+</div>
+</div>
+<!-- Matched Skills Pills -->
+<div class="mt-5 pt-4 border-t border-slate-100">
+<p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Matched Skills (100% Verified)</p>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-medium text-xs">Laravel</span>
+<span class="px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-medium text-xs">React</span>
+<span class="px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-medium text-xs">REST API</span>
+<span class="px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-medium text-xs">AWS</span>
+<span class="px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-medium text-xs">MySQL</span>
+<span class="px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-medium text-xs">Tailwind CSS</span>
+</div>
+</div>
+</div>
+<!-- Panel 2: Why You May Want to Skip (Risk Radar) (Amber Accent) -->
+<div class="bg-white rounded-lg border border-amber-200/90 shadow-sm p-5 relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-600" data-icon="warning">warning</span>
+<h3 class="text-sm font-bold font-headline text-slate-900">Why You May Want to Skip (Risk Radar)</h3>
+</div>
+<span class="text-[11px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded">3 Friction Factors</span>
+</div>
+<div class="space-y-3 text-xs text-slate-700">
+<div class="flex items-start gap-2.5 p-2 rounded bg-amber-50/50 border border-amber-100">
+<span class="material-symbols-outlined text-amber-600 text-sm mt-0.5 shrink-0" data-icon="alarm">alarm</span>
+<div>
+<strong class="text-amber-900">Aggressive 2-Week Window:</strong>
+<p class="text-slate-600 mt-0.5">The job post requests a complete MVP launch within 14 calendar days. Requires clear scope boundaries upfront.</p>
+</div>
+</div>
+<div class="flex items-start gap-2.5 p-2 rounded bg-amber-50/50 border border-amber-100">
+<span class="material-symbols-outlined text-amber-600 text-sm mt-0.5 shrink-0" data-icon="group">group</span>
+<div>
+<strong class="text-amber-900">Proposal Competition Velocity:</strong>
+<p class="text-slate-600 mt-0.5">Already 15-20 proposals submitted in first 40 minutes. You need an immediate high-relevance pitch to stay on top.</p>
+</div>
+</div>
+<div class="flex items-start gap-2.5 p-2 rounded bg-amber-50/50 border border-amber-100">
+<span class="material-symbols-outlined text-amber-600 text-sm mt-0.5 shrink-0" data-icon="schedule">schedule</span>
+<div>
+<strong class="text-amber-900">Timezone Standup Offset:</strong>
+<p class="text-slate-600 mt-0.5">Client specifies mandatory 9:00 AM EST sync calls. Ensure morning availability matches your current schedule.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Panel 3: Client Intelligence & History -->
+<div class="bg-white rounded-lg border border-slate-200 shadow-sm p-5 space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600" data-icon="account_balance">account_balance</span>
+<h3 class="text-sm font-bold font-headline text-slate-900">Client Intelligence &amp; History</h3>
+</div>
+<span class="text-xs text-slate-500 font-medium">Member since 2019</span>
+</div>
+<!-- Quick Metrics Ribbon -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+<div class="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+<p class="text-[10px] uppercase font-bold text-slate-400">Total Spend</p>
+<p class="text-sm font-bold text-slate-900 mt-0.5">$120k+</p>
+</div>
+<div class="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+<p class="text-[10px] uppercase font-bold text-slate-400">Hire Rate</p>
+<p class="text-sm font-bold text-emerald-600 mt-0.5">85%</p>
+</div>
+<div class="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+<p class="text-[10px] uppercase font-bold text-slate-400">Jobs Posted</p>
+<p class="text-sm font-bold text-slate-900 mt-0.5">42 jobs</p>
+</div>
+<div class="p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+<p class="text-[10px] uppercase font-bold text-slate-400">Avg Hourly Paid</p>
+<p class="text-sm font-bold text-slate-900 mt-0.5">$78/hr</p>
+</div>
+</div>
+<!-- Verified Sentiment Summary -->
+<div class="p-3 bg-blue-50/60 rounded-lg border border-blue-100">
+<div class="flex items-center gap-1.5 text-xs font-semibold text-blue-900 mb-1">
+<span class="material-symbols-outlined text-sm" data-icon="forum">forum</span>
+<span>Verified Sentiment Summary</span>
+</div>
+<p class="text-xs text-slate-700 leading-relaxed">
+              "Great communicator, pays promptly without milestone disputes, appreciates clear documentation and proactive status updates. 3 active hires currently ongoing."
+            </p>
+</div>
+</div>
+<!-- Panel 4: Relevant Experience & Proof to Pitch -->
+<div class="bg-white rounded-lg border border-slate-200 shadow-sm p-5 space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600" data-icon="folder_special">folder_special</span>
+<h3 class="text-sm font-bold font-headline text-slate-900">Relevant Experience &amp; Proof to Pitch</h3>
+</div>
+<span class="text-xs text-slate-500 font-medium">Mapped to Client Spec</span>
+</div>
+<div class="space-y-2.5">
+<!-- Item 1 -->
+<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-blue-300 bg-white hover:bg-slate-50/60 transition-colors">
+<div class="min-w-0 pr-3">
+<div class="flex items-center gap-2">
+<p class="text-xs font-bold text-slate-900 truncate">Multi-Tenant SaaS Dashboard (Laravel + React)</p>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">98% Match</span>
+</div>
+<p class="text-[11px] text-slate-500 truncate">Live production platform with Inertia.js, Stripe subscriptions, and team RBAC.</p>
+</div>
+<button class="shrink-0 p-1.5 text-slate-400 hover:text-blue-600 hover:bg-white rounded border border-transparent hover:border-slate-200 transition-colors" title="Copy Link to Proposal">
+<span class="material-symbols-outlined text-sm" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-blue-300 bg-white hover:bg-slate-50/60 transition-colors">
+<div class="min-w-0 pr-3">
+<div class="flex items-center gap-2">
+<p class="text-xs font-bold text-slate-900 truncate">High-Throughput E-commerce REST API</p>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">92% Match</span>
+</div>
+<p class="text-[11px] text-slate-500 truncate">Handled 12k concurrent requests via Laravel Octane, Redis queue workers &amp; AWS.</p>
+</div>
+<button class="shrink-0 p-1.5 text-slate-400 hover:text-blue-600 hover:bg-white rounded border border-transparent hover:border-slate-200 transition-colors" title="Copy Link to Proposal">
+<span class="material-symbols-outlined text-sm" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-blue-300 bg-white hover:bg-slate-50/60 transition-colors">
+<div class="min-w-0 pr-3">
+<div class="flex items-center gap-2">
+<p class="text-xs font-bold text-slate-900 truncate">Healthcare Portal with Real-Time Analytics</p>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-800">89% Match</span>
+</div>
+<p class="text-[11px] text-slate-500 truncate">HIPAA compliant patient dashboard built with React 18, Tailwind, and WebSockets.</p>
+</div>
+<button class="shrink-0 p-1.5 text-slate-400 hover:text-blue-600 hover:bg-white rounded border border-transparent hover:border-slate-200 transition-colors" title="Copy Link to Proposal">
+<span class="material-symbols-outlined text-sm" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Panel 5: Suggested Proposal & Strategic Approach (Full Width) -->
+<div class="bg-white rounded-lg border border-slate-200 shadow-sm p-6 space-y-5">
+<div class="flex items-center justify-between border-b border-slate-100 pb-3">
+<div class="flex items-center gap-2.5">
+<div class="h-7 w-7 rounded bg-blue-600 text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-base" data-icon="lightbulb">lightbulb</span>
+</div>
+<div>
+<h3 class="text-sm font-bold font-headline text-slate-900">Suggested Proposal &amp; Strategic Approach</h3>
+<p class="text-[11px] text-slate-500">AI-generated high-converting pitch blueprint</p>
+</div>
+</div>
+<button class="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="refresh">refresh</span>
+<span>Regenerate Angle</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+<!-- Column 1: Recommended Pitch Hook -->
+<div class="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+<div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+<span class="material-symbols-outlined text-blue-600 text-sm" data-icon="flag">flag</span>
+<span>1. Recommended Pitch Hook</span>
+</div>
+<p class="text-xs text-slate-600 leading-relaxed">
+              Open directly by referencing their 2-week deadline: <em>"I reviewed your requirements for the multi-tenant SaaS dashboard. I have a production-tested Laravel 10 auth &amp; billing scaffolding that shaves 5 days off development time."</em>
+</p>
+</div>
+<!-- Column 2: Architecture Recommendation -->
+<div class="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+<div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+<span class="material-symbols-outlined text-blue-600 text-sm" data-icon="architecture">architecture</span>
+<span>2. Architecture Recommendation</span>
+</div>
+<p class="text-xs text-slate-600 leading-relaxed">
+              Advise modular monolithic Laravel backend with decoupled React 18 frontend (or Inertia.js for maximum speed). Suggest using Vite for instant HMR and Tailwind CSS for rapid prototyping without technical debt.
+            </p>
+</div>
+<!-- Column 3: 14-Day Delivery Milestones -->
+<div class="p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
+<div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+<span class="material-symbols-outlined text-blue-600 text-sm" data-icon="timeline">timeline</span>
+<span>3. 14-Day Milestone Plan</span>
+</div>
+<ul class="text-xs text-slate-600 space-y-1.5">
+<li><strong>Days 1–4:</strong> DB Schema, Multi-tenant Auth &amp; Seeders</li>
+<li><strong>Days 5–10:</strong> Core CRUD, React Components &amp; API endpoints</li>
+<li><strong>Days 11–14:</strong> QA Testing, CI/CD setup, AWS deployment</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- 5. STICKY BOTTOM ACTION BAR -->
+<footer class="fixed bottom-0 right-0 left-64 bg-white/95 backdrop-blur border-t border-slate-200 py-3 px-8 z-30 shadow-md">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<!-- Left side: Status indicators -->
+<div class="flex items-center gap-4 text-xs">
+<div class="flex items-center gap-2 text-slate-600 font-medium">
+<span class="material-symbols-outlined text-amber-600 text-base" data-icon="toll">toll</span>
+<span>14 Connects needed</span>
+<span class="text-slate-300">•</span>
+<span class="text-slate-900 font-semibold">147 Available</span>
+</div>
+<div class="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[11px] font-semibold">
+<span class="material-symbols-outlined text-xs" data-icon="verified_user">verified_user</span>
+<span>Safe Match Verified</span>
+</div>
+</div>
+<!-- Right side: Primary CTA Actions -->
+<div class="flex items-center gap-3">
+<button class="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors">
+          Skip Job
+        </button>
+<button class="px-3.5 py-2 text-xs font-semibold text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm" data-icon="bookmark">bookmark</span>
+<span>Save Job</span>
+</button>
+<button class="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="auto_awesome">auto_awesome</span>
+<span>Generate AI Proposal</span>
+</button>
+</div>
+</div>
+</footer>
+</body></html>

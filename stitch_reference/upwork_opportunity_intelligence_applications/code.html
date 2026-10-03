@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Opportunity Intel - Applications</title>
+<!-- Material Symbols Outlined font -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Inter font -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {},
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {},
+          fontFamily: {
+            headline: ["Inter", "sans-serif"],
+            display: ["Inter", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            label: ["Inter", "sans-serif"]
+          },
+          fontSize: {}
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-50 text-slate-900 font-body antialiased flex">
+<!-- LEFT SIDEBAR (Source: Shared Components JSON) -->
+<aside class="fixed top-0 left-0 h-screen w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between bg-white dark:bg-slate-900 z-30">
+<div class="h-full flex flex-col justify-between p-4">
+<!-- Upper Section -->
+<div class="space-y-6">
+<!-- Brand Header -->
+<div class="flex items-center justify-between px-2 pt-1 pb-1">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-base shadow-sm">
+<span class="material-symbols-outlined text-[18px]">psychology</span>
+</div>
+<div>
+<div class="text-sm font-bold font-headline text-slate-900 dark:text-white tracking-tight leading-none">Opportunity Intel</div>
+<div class="text-[11px] font-medium text-slate-500 mt-1 leading-none">Upwork Pro Engine</div>
+</div>
+</div>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>
+            Sync
+          </span>
+</div>
+<!-- Sync Upwork CTA Button -->
+<div class="px-1">
+<button class="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold py-2 px-3 rounded-lg shadow-sm transition-colors duration-150">
+<span class="material-symbols-outlined text-sm">sync</span>
+<span>Sync Upwork</span>
+</button>
+</div>
+<!-- Primary Navigation -->
+<nav class="space-y-1">
+<!-- 1. Dashboard (Inactive) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[18px]">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- 2. Jobs (Inactive) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[18px]">work</span>
+<span>Jobs</span>
+</a>
+<!-- 3. Applications (ACTIVE: style_active_navigation) -->
+<a class="flex items-center justify-between px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-medium text-xs" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">send</span>
+<span class="font-semibold">Applications</span>
+</div>
+<span class="px-1.5 py-0.5 rounded-full bg-blue-600 text-white font-bold text-[10px] leading-none">5</span>
+</a>
+<!-- 4. Profile Intelligence (Inactive) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[18px]">psychology</span>
+<span>Profile Intelligence</span>
+</a>
+<!-- 5. Settings (Inactive) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+<!-- Lower Navigation & User Badge -->
+<div class="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[18px]">menu_book</span>
+<span>Documentation</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span>
+<span>Help &amp; Support</span>
+</a>
+</div>
+<!-- User Profile Card -->
+<div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60">
+<img class="w-8 h-8 rounded-full object-cover ring-1 ring-slate-300" data-alt="A clean, professional headshot of a Hispanic tech consultant and senior software freelancer in his early thirties wearing a minimalist navy jacket against a neutral studio backdrop. The lighting is soft and natural, emphasizing confidence and precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2D1r7JkiqOu4Yr4Tmrq6YA1DB3yZJ8-xNFzlx4KHhA4PhCj4xCnHviJhf1wtLnznqLJ5nrOLzktqdGYzwAYqD99HjopLwxO7Xlyyuc-jw3WuiPsvPqaMW37kdlCaQ3pnSEr8UeKdPsAkH55AW_7BTa2D90qeQFcAJWXmK1JEJefP5yHs0OeWMsP6eq6HZURFCLNZSYwpvTzIUqRrzmRtPVKMcwDvW-6Db2xalHvYK9DzSfu6KAnFAF6k--Z-jfobBsNt0a0MD1v59"/>
+<div class="min-w-0 flex-1">
+<p class="text-xs font-semibold text-slate-900 dark:text-white truncate">Alex Rivera</p>
+<p class="text-[10px] text-slate-500 truncate">Pro Freelancer • $125/hr</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-sm">unfold_more</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- MAIN WRAPPER (Offset by sidebar width: pl-64) -->
+<div class="flex-1 pl-64 flex flex-col min-h-screen">
+<!-- TOP NAVBAR (Source: Shared Components JSON) -->
+<header class="sticky top-0 right-0 h-14 border-b border-slate-200 dark:border-slate-800 w-full bg-white dark:bg-slate-900 z-20">
+<div class="flex items-center justify-between px-6 h-14 w-full">
+<!-- Left: Breadcrumb & Search -->
+<div class="flex items-center gap-4">
+<div class="flex items-center text-xs text-slate-500 font-medium">
+<span class="text-slate-400">Applications</span>
+<span class="material-symbols-outlined text-xs mx-1">chevron_right</span>
+<span class="text-slate-900 font-semibold">Overview</span>
+</div>
+<!-- Quick Search Bar -->
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-[18px]">search</span>
+<input class="w-full pl-8 pr-10 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600" placeholder="Search applications, clients..." type="text"/>
+<kbd class="absolute right-2 top-2 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-500 bg-white border border-slate-200 rounded shadow-2xs">⌘K</kbd>
+</div>
+</div>
+<!-- Right: Status, Quick Match, Notifications, Actions -->
+<div class="flex items-center gap-3">
+<!-- Connected Status Pill (trailing_secondary_action) -->
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span>Connected</span>
+</div>
+<!-- Quick Match CTA (trailing_primary_action) -->
+<button class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-sm transition-colors duration-150">
+<span class="material-symbols-outlined text-sm">bolt</span>
+<span>Quick Match</span>
+</button>
+<!-- Notification & Filter icons (trailing_icon_actions) -->
+<div class="flex items-center border-l border-slate-200 pl-3 gap-1">
+<button class="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors relative">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-blue-600 rounded-full"></span>
+</button>
+<button class="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</button>
+</div>
+<!-- Profile Avatar -->
+<img class="w-7 h-7 rounded-full object-cover ring-1 ring-slate-300 ml-1" data-alt="A portrait thumbnail of Alex Rivera, a professional tech freelancer with groomed dark hair in high resolution against a clean studio setting. Crisp and balanced lighting with modern SaaS aesthetics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoGd7bf9wWz_rnKxqq9LN24lIFurJfH6H6w-NrtmF4C5aci8D0YadXfl6GSThZUbOM_RY3b0qkic9isNpES7gERs1IQTYOsPZAULim5V2PCyh9EQ2omCpFZcpBoXKcl0OWbsLvUladCK3an4tjckOZRQsEZVvUTx8aTfqEgyVSSOGhPxLzpnQOkYgyEFEwocnFfzsvQYefrH1F9uk-Oy73MIsnQRo4zkB94ur-69HQufCB0zyjQv1rAH5LTkTz9ebfLK8RNYr6QtTa"/>
+</div>
+</div>
+</header>
+<!-- MAIN CONTENT CANVAS -->
+<main class="flex-1 p-6 space-y-5 bg-slate-50 relative">
+<!-- PAGE HEADER -->
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+<div>
+<h1 class="text-xl font-bold font-headline text-slate-900 tracking-tight">Applications</h1>
+<p class="text-xs text-slate-500 mt-0.5">Track submitted proposals, client engagement, interview velocity, and connect ROI.</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-2xs transition-colors">
+<span class="material-symbols-outlined text-sm text-slate-500">file_download</span>
+            Export CSV
+          </button>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-2xs transition-colors">
+<span class="material-symbols-outlined text-sm text-slate-500">sync</span>
+            Sync Status
+          </button>
+</div>
+</div>
+<!-- METRICS SUMMARY RIBBON (4 Compact Metric Cards) -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+<!-- Card 1: Total Active -->
+<div class="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs flex items-center justify-between">
+<div>
+<p class="text-[11px] font-medium text-slate-500">Total Active</p>
+<p class="text-2xl font-bold font-headline text-slate-900 mt-0.5">5</p>
+<p class="text-[10px] text-slate-400 mt-0.5">Proposals pending decision</p>
+</div>
+<div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined text-[20px]">send</span>
+</div>
+</div>
+<!-- Card 2: Client View Rate -->
+<div class="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs flex items-center justify-between">
+<div>
+<p class="text-[11px] font-medium text-slate-500">Client View Rate</p>
+<div class="flex items-baseline gap-2 mt-0.5">
+<span class="text-2xl font-bold font-headline text-slate-900">60%</span>
+<span class="inline-flex items-center text-[10px] font-semibold text-emerald-600">
+<span class="material-symbols-outlined text-[12px]">trending_up</span>
+                +12%
+              </span>
+</div>
+<p class="text-[10px] text-slate-400 mt-0.5">vs last 30 days avg</p>
+</div>
+<div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</div>
+</div>
+<!-- Card 3: Interview Rate -->
+<div class="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs flex items-center justify-between">
+<div>
+<p class="text-[11px] font-medium text-slate-500">Interview Velocity</p>
+<div class="flex items-baseline gap-2 mt-0.5">
+<span class="text-2xl font-bold font-headline text-slate-900">40%</span>
+<span class="text-[10px] font-medium text-purple-600 bg-purple-50 px-1 rounded">2 active</span>
+</div>
+<p class="text-[10px] text-slate-400 mt-0.5">High responsiveness tier</p>
+</div>
+<div class="w-9 h-9 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+<span class="material-symbols-outlined text-[20px]">forum</span>
+</div>
+</div>
+<!-- Card 4: Connects Invested -->
+<div class="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs flex items-center justify-between">
+<div>
+<p class="text-[11px] font-medium text-slate-500">Connects Invested</p>
+<p class="text-2xl font-bold font-headline text-slate-900 mt-0.5">74</p>
+<p class="text-[10px] text-slate-400 mt-0.5">Avg 14.8 connects / bid</p>
+</div>
+<div class="w-9 h-9 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+<span class="material-symbols-outlined text-[20px]">token</span>
+</div>
+</div>
+</section>
+<!-- FILTER & TOOLBAR SECTION -->
+<section class="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs space-y-3">
+<!-- Top Toolbar row -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<!-- Search input -->
+<div class="relative flex-1 max-w-sm">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-[18px]">filter_list</span>
+<input class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-600" placeholder="Filter applications by keyword, skill, client..." type="text"/>
+</div>
+<!-- Dropdowns -->
+<div class="flex items-center gap-2 flex-wrap">
+<div class="flex items-center text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white text-slate-700 cursor-pointer hover:bg-slate-50">
+<span class="text-slate-400 mr-1.5 font-normal">Date:</span>
+<span class="font-medium">Last 30 Days</span>
+<span class="material-symbols-outlined text-sm ml-1 text-slate-400">arrow_drop_down</span>
+</div>
+<div class="flex items-center text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white text-slate-700 cursor-pointer hover:bg-slate-50">
+<span class="text-slate-400 mr-1.5 font-normal">Score:</span>
+<span class="font-medium">80+ Match</span>
+<span class="material-symbols-outlined text-sm ml-1 text-slate-400">arrow_drop_down</span>
+</div>
+<div class="flex items-center text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white text-slate-700 cursor-pointer hover:bg-slate-50">
+<span class="text-slate-400 mr-1.5 font-normal">Outcome:</span>
+<span class="font-medium">All Outcomes</span>
+<span class="material-symbols-outlined text-sm ml-1 text-slate-400">arrow_drop_down</span>
+</div>
+</div>
+</div>
+<!-- Segment Control Filter Tabs -->
+<div class="flex items-center gap-1 border-t border-slate-100 pt-2.5 text-xs font-medium">
+<button class="px-3 py-1 rounded text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            Draft <span class="ml-1 text-[10px] text-slate-400">(2)</span>
+</button>
+<button class="px-3 py-1 rounded bg-blue-50 text-blue-600 font-semibold border border-blue-200 shadow-2xs">
+            Submitted <span class="ml-1 px-1.5 py-0.2 bg-blue-600 text-white rounded-full text-[10px]">5</span>
+</button>
+<button class="px-3 py-1 rounded text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            Interview <span class="ml-1 text-[10px] text-slate-400">(2)</span>
+</button>
+<button class="px-3 py-1 rounded text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            Hired <span class="ml-1 text-[10px] text-slate-400">(3)</span>
+</button>
+<button class="px-3 py-1 rounded text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+            Archived <span class="ml-1 text-[10px] text-slate-400">(0)</span>
+</button>
+</div>
+</section>
+<!-- DENSE SAAS TABLE -->
+<section class="bg-white border border-slate-200 rounded-lg shadow-2xs overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse text-xs">
+<thead>
+<tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+<th class="py-2.5 px-4">Job Title &amp; Client</th>
+<th class="py-2.5 px-3">Client Rating &amp; Spend</th>
+<th class="py-2.5 px-3">Opportunity Score</th>
+<th class="py-2.5 px-3">Status</th>
+<th class="py-2.5 px-3">Connects</th>
+<th class="py-2.5 px-3">Applied</th>
+<th class="py-2.5 px-3">Outcome / Activity</th>
+<th class="py-2.5 px-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100">
+<!-- ROW 1 (SELECTED / ACTIVE DRAWER ROW) -->
+<tr class="bg-blue-50/70 border-l-4 border-l-blue-600 transition-colors">
+<td class="py-3 px-4">
+<div class="flex items-start gap-2">
+<div class="w-2 h-2 rounded-full bg-blue-600 mt-1.5 shrink-0" title="Active selection"></div>
+<div>
+<div class="font-semibold text-slate-900 flex items-center gap-1.5">
+<span class="hover:underline cursor-pointer">Laravel + React SaaS Developer</span>
+<span class="text-[10px] px-1 py-0.2 bg-blue-100 text-blue-700 rounded font-medium">Drawer open</span>
+</div>
+<div class="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
+<span class="font-medium text-slate-700">TechCorp Inc</span>
+<span class="material-symbols-outlined text-[13px] text-blue-600" style="font-variation-settings: 'FILL' 1;" title="Payment Verified">verified</span>
+<span>• United States</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1 text-slate-800 font-medium">
+<span class="text-amber-500 font-bold">4.9</span>
+<span class="material-symbols-outlined text-amber-500 text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="text-[11px] text-slate-500">$120k+ spend</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    92 / 100 • Strong Match
+                  </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-100 text-blue-800">
+                    Submitted
+                  </span>
+</td>
+<td class="py-3 px-3 font-medium text-slate-700">
+                  16 Connects
+                </td>
+<td class="py-3 px-3 text-slate-500">
+<div>Oct 3, 2026</div>
+<div class="text-[10px] text-slate-400">2 days ago</div>
+</td>
+<td class="py-3 px-3">
+<div class="inline-flex items-center gap-1 text-blue-700 font-medium bg-blue-100/60 px-2 py-0.5 rounded text-[11px]">
+<span class="material-symbols-outlined text-[14px]">visibility</span>
+                    Viewed 3h ago
+                  </div>
+</td>
+<td class="py-3 px-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded hover:bg-blue-100 text-blue-600" title="Selected application">
+<span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+<button class="p-1 rounded hover:bg-slate-200 text-slate-400">
+<span class="material-symbols-outlined text-base">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- ROW 2 -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-3 px-4">
+<div>
+<div class="font-semibold text-slate-900 hover:text-blue-600 cursor-pointer">Next.js Fullstack Platform</div>
+<div class="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
+<span class="font-medium text-slate-700">CloudData Co</span>
+<span class="material-symbols-outlined text-[13px] text-blue-600" style="font-variation-settings: 'FILL' 1;" title="Payment Verified">verified</span>
+<span>• Germany</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1 text-slate-800 font-medium">
+<span class="text-amber-500 font-bold">5.0</span>
+<span class="material-symbols-outlined text-amber-500 text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="text-[11px] text-slate-500">$45k spend</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    88 / 100 • Good Match
+                  </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700">
+                    Submitted
+                  </span>
+</td>
+<td class="py-3 px-3 font-medium text-slate-700">
+                  14 Connects
+                </td>
+<td class="py-3 px-3 text-slate-500">
+<div>Oct 2, 2026</div>
+<div class="text-[10px] text-slate-400">3 days ago</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-slate-500 text-[11px]">
+<span class="material-symbols-outlined text-[14px] text-slate-400">schedule</span>
+                    Proposal Unread
+                  </span>
+</td>
+<td class="py-3 px-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700">
+<span class="material-symbols-outlined text-base">visibility</span>
+</button>
+<button class="p-1 rounded hover:bg-slate-100 text-slate-400">
+<span class="material-symbols-outlined text-base">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- ROW 3 -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-3 px-4">
+<div>
+<div class="font-semibold text-slate-900 hover:text-blue-600 cursor-pointer">Python FastAPI Microservice</div>
+<div class="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
+<span class="font-medium text-slate-700">FinTech Labs</span>
+<span class="material-symbols-outlined text-[13px] text-blue-600" style="font-variation-settings: 'FILL' 1;" title="Payment Verified">verified</span>
+<span>• United Kingdom</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1 text-slate-800 font-medium">
+<span class="text-amber-500 font-bold">4.85</span>
+<span class="material-symbols-outlined text-amber-500 text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="text-[11px] text-slate-500">$200k+ spend</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    95 / 100 • Exceptional
+                  </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-purple-100 text-purple-700 border border-purple-200">
+                    Interview
+                  </span>
+</td>
+<td class="py-3 px-3 font-medium text-slate-700">
+                  12 Connects
+                </td>
+<td class="py-3 px-3 text-slate-500">
+<div>Sep 28, 2026</div>
+<div class="text-[10px] text-slate-400">7 days ago</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-purple-700 font-semibold bg-purple-50 border border-purple-200 px-2 py-0.5 rounded text-[11px]">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                    Interview Scheduled
+                  </span>
+</td>
+<td class="py-3 px-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700">
+<span class="material-symbols-outlined text-base">visibility</span>
+</button>
+<button class="p-1 rounded hover:bg-slate-100 text-slate-400">
+<span class="material-symbols-outlined text-base">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- ROW 4 -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-3 px-4">
+<div>
+<div class="font-semibold text-slate-900 hover:text-blue-600 cursor-pointer">Senior React Native Mobile App Engineer</div>
+<div class="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
+<span class="font-medium text-slate-700">HealthTech MVP</span>
+<span class="material-symbols-outlined text-[13px] text-blue-600" style="font-variation-settings: 'FILL' 1;" title="Payment Verified">verified</span>
+<span>• Canada</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1 text-slate-800 font-medium">
+<span class="text-amber-500 font-bold">4.9</span>
+<span class="material-symbols-outlined text-amber-500 text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="text-[11px] text-slate-500">$190k spend</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    86 / 100 • Good Match
+                  </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-100 text-blue-800">
+                    Submitted
+                  </span>
+</td>
+<td class="py-3 px-3 font-medium text-slate-700">
+                  10 Connects
+                </td>
+<td class="py-3 px-3 text-slate-500">
+<div>Sep 25, 2026</div>
+<div class="text-[10px] text-slate-400">10 days ago</div>
+</td>
+<td class="py-3 px-3">
+<div class="inline-flex items-center gap-1 text-blue-700 font-medium bg-blue-50 px-2 py-0.5 rounded text-[11px]">
+<span class="material-symbols-outlined text-[14px]">visibility</span>
+                    Client Viewed
+                  </div>
+</td>
+<td class="py-3 px-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700">
+<span class="material-symbols-outlined text-base">visibility</span>
+</button>
+<button class="p-1 rounded hover:bg-slate-100 text-slate-400">
+<span class="material-symbols-outlined text-base">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- ROW 5 -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-3 px-4">
+<div>
+<div class="font-semibold text-slate-900 hover:text-blue-600 cursor-pointer">Vue 3 + Tailwind Executive Dashboard</div>
+<div class="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
+<span class="font-medium text-slate-700">Acme Global</span>
+<span class="material-symbols-outlined text-[13px] text-blue-600" style="font-variation-settings: 'FILL' 1;" title="Payment Verified">verified</span>
+<span>• Australia</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center gap-1 text-slate-800 font-medium">
+<span class="text-amber-500 font-bold">4.8</span>
+<span class="material-symbols-outlined text-amber-500 text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="text-[11px] text-slate-500">$65k spend</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    90 / 100 • Strong Match
+                  </span>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-100 text-blue-800">
+                    Submitted
+                  </span>
+</td>
+<td class="py-3 px-3 font-medium text-slate-700">
+                  16 Connects
+                </td>
+<td class="py-3 px-3 text-slate-500">
+<div>Sep 22, 2026</div>
+<div class="text-[10px] text-slate-400">13 days ago</div>
+</td>
+<td class="py-3 px-3">
+<span class="inline-flex items-center gap-1 text-slate-500 text-[11px]">
+<span class="material-symbols-outlined text-[14px] text-slate-400">hourglass_empty</span>
+                    Awaiting Client
+                  </span>
+</td>
+<td class="py-3 px-4 text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700">
+<span class="material-symbols-outlined text-base">visibility</span>
+</button>
+<button class="p-1 rounded hover:bg-slate-100 text-slate-400">
+<span class="material-symbols-outlined text-base">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination Footer -->
+<div class="px-4 py-2.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+<div>Showing <span class="font-medium text-slate-800">1 to 5</span> of 5 applications</div>
+<div class="flex items-center gap-1">
+<button class="px-2 py-1 rounded border border-slate-200 bg-white text-slate-400 cursor-not-allowed text-[11px]">Previous</button>
+<button class="px-2.5 py-1 rounded bg-blue-600 text-white font-medium text-[11px]">1</button>
+<button class="px-2 py-1 rounded border border-slate-200 bg-white text-slate-400 cursor-not-allowed text-[11px]">Next</button>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- SLIDE-OVER DETAIL DRAWER OVERLAY & PANEL -->
+<!-- Dim Backdrop (light subtle darkening to emphasize focus while keeping table readable) -->
+<div class="fixed inset-0 bg-slate-900/20 backdrop-blur-[1px] z-40 transition-opacity"></div>
+<!-- DRAWER CONTAINER (w-[540px], fixed right, shadow-2xl, border-l border-slate-200) -->
+<div class="fixed inset-y-0 right-0 w-full sm:w-[540px] bg-white border-l border-slate-200 z-50 flex flex-col shadow-2xl transform transition-transform duration-200 ease-in-out">
+<!-- DRAWER HEADER -->
+<div class="px-6 py-4 border-b border-slate-200 bg-white shrink-0">
+<div class="flex items-start justify-between">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
+              Application Details • Active
+            </span>
+<span class="text-xs text-slate-400 font-mono">APP-8492</span>
+</div>
+<h2 class="text-base font-bold font-headline text-slate-900 leading-snug">Laravel + React SaaS Developer</h2>
+<p class="text-xs text-slate-500 flex items-center gap-1.5">
+<span class="font-medium text-slate-700">TechCorp Inc</span>
+<span>•</span>
+<span>United States (UTC-5)</span>
+<span>•</span>
+<span class="font-semibold text-slate-900">$1,800 Fixed Bid</span>
+</p>
+</div>
+<!-- Header Actions: Upwork Link & Close Button -->
+<div class="flex items-center gap-1">
+<a class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors" href="#" title="Open on Upwork">
+<span class="material-symbols-outlined text-[18px]">open_in_new</span>
+</a>
+<button class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors" title="Close drawer">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+</div>
+<!-- Actionable Notification / Client Activity Banner -->
+<div class="mt-3.5 p-2.5 rounded-lg bg-blue-50 border border-blue-200/80 flex items-start gap-2.5 text-xs text-blue-900">
+<span class="material-symbols-outlined text-blue-600 text-[18px] shrink-0 mt-0.5">info</span>
+<div class="text-[11.5px] leading-relaxed">
+<span class="font-semibold">Client viewed your proposal 3 hours ago.</span>
+<span class="text-blue-700"> Recommended action: Keep availability window ready; client typically messages within 4h after review.</span>
+</div>
+</div>
+<!-- TABS NAVIGATION -->
+<div class="flex border-b border-slate-200 -mb-4 mt-4 text-xs font-medium">
+<button class="py-2.5 px-4 text-blue-600 border-b-2 border-blue-600 font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">description</span>
+          Submitted Proposal
+        </button>
+<button class="py-2.5 px-4 text-slate-500 hover:text-slate-800 hover:border-slate-300 border-b-2 border-transparent flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">analytics</span>
+          Job Analysis Summary
+        </button>
+<button class="py-2.5 px-4 text-slate-500 hover:text-slate-800 hover:border-slate-300 border-b-2 border-transparent flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">history</span>
+          Client History
+        </button>
+</div>
+</div>
+<!-- DRAWER SCROLLABLE BODY -->
+<div class="flex-1 overflow-y-auto p-6 space-y-5 bg-slate-50/50">
+<!-- STATS RIBBON (Bid Details Grid) -->
+<div class="grid grid-cols-3 gap-2.5">
+<div class="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+<div class="text-[10px] uppercase font-semibold text-slate-400">Proposed Bid</div>
+<div class="text-sm font-bold text-slate-900 mt-0.5">$1,800</div>
+<div class="text-[10px] text-slate-500">Net $1,620 after fee</div>
+</div>
+<div class="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+<div class="text-[10px] uppercase font-semibold text-slate-400">Connects Spent</div>
+<div class="text-sm font-bold text-slate-900 mt-0.5">16 Connects</div>
+<div class="text-[10px] text-blue-600 font-medium">Boosted bid (Top 3)</div>
+</div>
+<div class="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+<div class="text-[10px] uppercase font-semibold text-slate-400">Estimated Response</div>
+<div class="text-sm font-bold text-slate-900 mt-0.5">~4 Hours</div>
+<div class="text-[10px] text-emerald-600 font-medium">High velocity</div>
+</div>
+</div>
+<!-- OPPORTUNITY SCORE BREAKDOWN CARD -->
+<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center font-bold text-xs">
+<span class="material-symbols-outlined text-[16px]">target</span>
+</div>
+<div>
+<h3 class="text-xs font-bold text-slate-900">Opportunity Score Breakdown</h3>
+<p class="text-[10px] text-slate-500">Algorithmic fit calculated at submission</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-base font-extrabold text-emerald-600 font-headline">92</span>
+<span class="text-xs font-semibold text-slate-400">/100</span>
+</div>
+</div>
+<!-- Progress Metrics -->
+<div class="grid grid-cols-2 gap-3 pt-1">
+<!-- Technical Match -->
+<div class="space-y-1">
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-600 font-medium">Technical Match</span>
+<span class="font-bold text-slate-800">24/25</span>
+</div>
+<div class="w-full bg-slate-100 rounded-full h-1.5">
+<div class="bg-emerald-500 h-1.5 rounded-full" style="width: 96%"></div>
+</div>
+</div>
+<!-- Portfolio Proof -->
+<div class="space-y-1">
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-600 font-medium">Portfolio Proof</span>
+<span class="font-bold text-slate-800">14/15</span>
+</div>
+<div class="w-full bg-slate-100 rounded-full h-1.5">
+<div class="bg-blue-600 h-1.5 rounded-full" style="width: 93%"></div>
+</div>
+</div>
+<!-- Budget Fit -->
+<div class="space-y-1">
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-600 font-medium">Budget &amp; Rate Fit</span>
+<span class="font-bold text-slate-800">10/10</span>
+</div>
+<div class="w-full bg-slate-100 rounded-full h-1.5">
+<div class="bg-emerald-500 h-1.5 rounded-full" style="width: 100%"></div>
+</div>
+</div>
+<!-- Connect Efficiency -->
+<div class="space-y-1">
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-600 font-medium">Connect Efficiency</span>
+<span class="font-bold text-slate-800">4/5</span>
+</div>
+<div class="w-full bg-slate-100 rounded-full h-1.5">
+<div class="bg-amber-500 h-1.5 rounded-full" style="width: 80%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- SUBMITTED COVER LETTER CARD -->
+<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs space-y-3">
+<div class="flex items-center justify-between pb-2 border-b border-slate-100">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-500 text-[18px]">notes</span>
+<h3 class="text-xs font-bold text-slate-900">Submitted Cover Letter <span class="text-[10px] text-blue-600 font-semibold">(AI-Optimized v2.4)</span></h3>
+</div>
+<button class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 hover:text-slate-900 bg-slate-50 px-2 py-1 rounded border border-slate-200 hover:bg-slate-100 transition-colors">
+<span class="material-symbols-outlined text-[13px]">content_copy</span>
+            Copy
+          </button>
+</div>
+<!-- Formatted Proposal Letter -->
+<div class="text-xs text-slate-700 leading-relaxed space-y-3 bg-slate-50/70 p-3 rounded border border-slate-100 font-mono text-[11px]">
+<p>
+            Hi, I noticed you need a Laravel + React developer to build out your SaaS dashboard and API integrations. Having architected high-throughput B2B web applications, I can step in immediately to deliver clean, maintainable code.
+          </p>
+<div>
+<span class="font-semibold text-slate-900">Problem:</span> Scaling frontend state while maintaining fast REST API response times under load.
+          </div>
+<div>
+<span class="font-semibold text-slate-900">Solution:</span> Modular Laravel 11 API endpoints paired with React Query and lightweight UI components.
+          </div>
+<div>
+<span class="font-semibold text-slate-900">Proof:</span> Recently completed similar multi-tenant SaaS dashboard (99.9% uptime, 150ms latency across 45k monthly active users).
+          </div>
+<div>
+<span class="font-semibold text-slate-900">Question:</span> Do you have existing Figma mockups ready, or should we refine UI requirements first?
+          </div>
+</div>
+</div>
+<!-- SCREENING QUESTIONS & ANSWERS -->
+<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs space-y-3">
+<h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-slate-500 text-[18px]">quiz</span>
+          Screening Questions Answered
+        </h3>
+<div class="p-3 bg-slate-50 rounded border border-slate-200/80 space-y-1.5 text-xs">
+<div class="font-medium text-slate-800 flex items-start gap-1.5">
+<span class="text-blue-600 font-bold">Q1:</span>
+<span>Do you have experience with multi-tenant database indexing in Laravel?</span>
+</div>
+<div class="text-[11px] text-slate-600 pl-4 border-l-2 border-blue-200">
+            "Yes, implemented tenant-scoped schemas and optimized compound PostgreSQL indexes for 45k MAU on a production logistics SaaS."
+          </div>
+</div>
+</div>
+<!-- ATTACHED ARTIFACTS / PORTFOLIO PROOF -->
+<div class="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs space-y-2.5">
+<div class="flex items-center justify-between">
+<h3 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-slate-500 text-[18px]">attachment</span>
+            Attached Artifacts &amp; Proof
+          </h3>
+<span class="text-[10px] text-slate-400">1 File</span>
+</div>
+<div class="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-slate-50 transition-colors">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded bg-red-50 border border-red-200 text-red-600 flex items-center justify-center font-bold text-[10px]">
+              PDF
+            </div>
+<div>
+<p class="text-xs font-medium text-slate-800">SaaS_Architecture_Case_Study.pdf</p>
+<p class="text-[10px] text-slate-400">1.8 MB • Uploaded Oct 3, 2026</p>
+</div>
+</div>
+<button class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-slate-700 bg-white border border-slate-200 rounded hover:bg-slate-100 shadow-2xs transition-colors">
+<span class="material-symbols-outlined text-sm text-slate-500">visibility</span>
+            Preview
+          </button>
+</div>
+</div>
+</div>
+<!-- DRAWER FIXED FOOTER ACTIONS -->
+<div class="p-4 border-t border-slate-200 bg-white flex items-center justify-between shrink-0">
+<button class="px-3 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">cancel</span>
+        Withdraw Proposal
+      </button>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg shadow-2xs transition-colors">
+          Edit Notes
+        </button>
+<button class="px-3.5 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm">send</span>
+          Follow-Up Message
+        </button>
+</div>
+</div>
+</div>
+</body></html>
