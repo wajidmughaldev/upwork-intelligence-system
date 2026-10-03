@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\UpworkConnection;
+use App\Services\Upwork\Mappers\UpworkResponseMapper;
+use App\Services\Upwork\UpworkErrorNormalizer;
 use App\Services\Upwork\UpworkMcpService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class UpworkApiController extends Controller
 {
@@ -19,7 +21,8 @@ class UpworkApiController extends Controller
 
     /**
      * GET /api/upwork/status
-     * Returns only safe frontend information.
+     * Returns only safe frontend information (connected, accountName, role).
+     * Never exposes access_token, refresh_token, org_uid, or internal IDs.
      */
     public function status(): JsonResponse
     {
@@ -28,60 +31,78 @@ class UpworkApiController extends Controller
 
     /**
      * GET /api/upwork/profile
-     * Read-only freelancer profile and signals.
+     * Read-only freelancer profile and signals mapped to safe DTO.
      */
     public function profile(): JsonResponse
     {
         try {
             $profile = $this->upworkService->profile();
+
+            try {
+                $highlights = $this->upworkService->portfolioHighlights();
+            } catch (Exception) {
+                $highlights = [];
+            }
+
+            try {
+                $connects = $this->upworkService->connectsBalance();
+            } catch (Exception) {
+                $connects = [];
+            }
+
+            $mapped = UpworkResponseMapper::mapProfile($profile, $highlights, $connects);
+
             return response()->json([
                 'success' => true,
-                'data' => $profile,
+                'data' => $mapped,
             ]);
         } catch (Exception $e) {
-            return $this->errorResponse($e, 'Failed to fetch Upwork profile');
+            return UpworkErrorNormalizer::normalize($e);
         }
     }
 
     /**
      * GET /api/upwork/connects
-     * Read-only connects balance.
+     * Read-only connects balance mapped to safe DTO.
      */
     public function connects(): JsonResponse
     {
         try {
             $connects = $this->upworkService->connectsBalance();
+            $mapped = UpworkResponseMapper::mapConnects($connects);
+
             return response()->json([
                 'success' => true,
-                'data' => $connects,
+                'data' => $mapped,
             ]);
         } catch (Exception $e) {
-            return $this->errorResponse($e, 'Failed to fetch Connects balance');
+            return UpworkErrorNormalizer::normalize($e);
         }
     }
 
     /**
      * GET /api/upwork/jobs/recommended
-     * Read-only job recommendations (smart_search).
+     * Read-only job recommendations (smart_search) mapped to safe DTO list.
      */
     public function recommendedJobs(Request $request): JsonResponse
     {
         try {
             $options = $request->only(['mode', 'limit']);
             $jobs = $this->upworkService->recommendedJobs($options);
+            $mapped = UpworkResponseMapper::mapJobSearchResults($jobs);
 
             return response()->json([
                 'success' => true,
-                'data' => $jobs,
+                'data' => $mapped,
             ]);
         } catch (Exception $e) {
-            return $this->errorResponse($e, 'Failed to fetch recommended jobs');
+            return UpworkErrorNormalizer::normalize($e);
         }
     }
 
     /**
      * GET /api/upwork/jobs/search
-     * Controlled keyword search.
+     * Controlled keyword search mapped to safe DTO list.
      */
     public function searchJobs(Request $request): JsonResponse
     {
@@ -100,80 +121,129 @@ class UpworkApiController extends Controller
             ]);
 
             $results = $this->upworkService->searchJobs($filters);
+            $mapped = UpworkResponseMapper::mapJobSearchResults($results);
 
             return response()->json([
                 'success' => true,
-                'data' => $results,
+                'data' => $mapped,
             ]);
         } catch (Exception $e) {
-            return $this->errorResponse($e, 'Failed to perform job search');
+            return UpworkErrorNormalizer::normalize($e);
         }
     }
 
     /**
      * GET /api/upwork/jobs/{reference}
-     * Retrieve single job details by numeric ID or ~02... ciphertext.
+     * Retrieve single job details mapped to safe DTO.
      */
     public function jobDetails(string $reference): JsonResponse
     {
         try {
             $job = $this->upworkService->jobDetails($reference);
+            $mapped = UpworkResponseMapper::mapJobDetail($job);
 
             return response()->json([
                 'success' => true,
-                'data' => $job,
+                'data' => $mapped,
             ]);
         } catch (Exception $e) {
-            return $this->errorResponse($e, 'Failed to fetch job details');
+            return UpworkErrorNormalizer::normalize($e);
         }
     }
 
     /**
      * GET /api/upwork/proposals
-     * Read-only list of submitted proposals.
+     * Read-only list of submitted proposals mapped to safe DTO list.
      */
     public function proposals(): JsonResponse
     {
         try {
             $proposals = $this->upworkService->proposals();
+            $mapped = UpworkResponseMapper::mapProposals($proposals);
 
             return response()->json([
                 'success' => true,
-                'data' => $proposals,
+                'data' => $mapped,
             ]);
         } catch (Exception $e) {
-            return $this->errorResponse($e, 'Failed to fetch proposals');
+            return UpworkErrorNormalizer::normalize($e);
         }
     }
 
     /**
      * GET /api/upwork/invitations
-     * Read-only list of received invitations.
+     * Read-only list of received invitations mapped to safe DTO list.
      */
     public function invitations(): JsonResponse
     {
         try {
             $invitations = $this->upworkService->invitations();
+            $mapped = UpworkResponseMapper::mapInvitations($invitations);
 
             return response()->json([
                 'success' => true,
-                'data' => $invitations,
+                'data' => $mapped,
             ]);
         } catch (Exception $e) {
-            return $this->errorResponse($e, 'Failed to fetch invitations');
+            return UpworkErrorNormalizer::normalize($e);
         }
     }
 
     /**
-     * Helper to format standardized error response without leaking tokens or private IDs.
+     * GET /api/upwork/accounts
+     * List safe candidate accounts when selection is required.
      */
-    protected function errorResponse(Exception $e, string $fallback): JsonResponse
+    public function candidateAccounts(): JsonResponse
     {
-        Log::warning($fallback, ['error' => $e->getMessage()]);
+        try {
+            $connection = UpworkConnection::active();
+            if (! $connection) {
+                return response()->json([
+                    'success' => false,
+                    'code' => 'RECONNECT_REQUIRED',
+                    'message' => 'No active Upwork connection.',
+                ], 401);
+            }
 
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage() ?: $fallback,
-        ], 400);
+            $candidates = $connection->raw_metadata['talent_candidates'] ?? [];
+            $safe = [];
+            foreach ($candidates as $idx => $c) {
+                $safe[] = [
+                    'id' => (string) $idx,
+                    'name' => (string) ($c['name'] ?? 'Freelancer Account'),
+                    'role' => 'Freelancer',
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $safe,
+            ]);
+        } catch (Exception $e) {
+            return UpworkErrorNormalizer::normalize($e);
+        }
+    }
+
+    /**
+     * POST /api/upwork/accounts/select
+     * Select a specific TALENT account by candidate ID.
+     */
+    public function selectAccount(Request $request): JsonResponse
+    {
+        $request->validate([
+            'accountId' => 'required',
+        ]);
+
+        try {
+            $result = $this->upworkService->selectTalentAccount($request->input('accountId'));
+
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+            ]);
+        } catch (Exception $e) {
+            return UpworkErrorNormalizer::normalize($e);
+        }
     }
 }
+

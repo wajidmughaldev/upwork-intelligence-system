@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\AccountSelectionRequiredException;
+use App\Exceptions\NoEligibleAccountException;
 use App\Models\UpworkConnection;
 use App\Services\Upwork\UpworkMcpService;
 use Carbon\Carbon;
@@ -11,6 +13,7 @@ use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Laravel\Mcp\Client\OAuth\OAuthRouteRegistrar;
 use Laravel\Mcp\Client\OAuth\TokenSet;
 use Laravel\Mcp\Facades\Mcp;
 
@@ -51,10 +54,18 @@ class UpworkOAuthController extends Controller
         ?string $returnTo = null
     ): RedirectResponse {
         try {
+            $clientId = null;
+            try {
+                $clientId = OAuthRouteRegistrar::url("mcp.oauth.{$client}.client-metadata");
+            } catch (Exception) {
+                $clientId = url("mcp/oauth/{$client}/client-metadata.json");
+            }
+
             // Save encrypted token set server-side
-            $connection = UpworkConnection::updateOrCreate(
+            UpworkConnection::updateOrCreate(
                 ['provider' => 'upwork'],
                 [
+                    'client_id' => $clientId,
                     'access_token' => $token->accessToken,
                     'refresh_token' => $token->refreshToken,
                     'token_type' => $token->tokenType,
@@ -65,7 +76,19 @@ class UpworkOAuthController extends Controller
             );
 
             // Sync account info immediately via list_accounts
-            $this->upworkService->syncAccountMetadata();
+            try {
+                $this->upworkService->syncAccountMetadata();
+            } catch (AccountSelectionRequiredException) {
+                $targetUrl = $returnTo ?? 'http://localhost:3000';
+                $separator = str_contains($targetUrl, '?') ? '&' : '?';
+
+                return redirect($targetUrl . $separator . 'upwork_account_selection=1');
+            } catch (NoEligibleAccountException) {
+                $targetUrl = $returnTo ?? 'http://localhost:3000';
+                $separator = str_contains($targetUrl, '?') ? '&' : '?';
+
+                return redirect($targetUrl . $separator . 'upwork_error=no_eligible_account');
+            }
 
             $targetUrl = $returnTo ?? 'http://localhost:3000';
             $separator = str_contains($targetUrl, '?') ? '&' : '?';
@@ -104,3 +127,4 @@ class UpworkOAuthController extends Controller
         return redirect('http://localhost:3000?upwork_disconnected=1');
     }
 }
+

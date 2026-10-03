@@ -87,16 +87,18 @@ class UpworkApiTest extends TestCase
 
         foreach ($endpoints as $url) {
             $response = $this->getJson($url);
-            $response->assertStatus(400)
+            $response->assertStatus(401)
                 ->assertJsonStructure([
                     'success',
+                    'code',
                     'message',
                 ])
                 ->assertJson([
                     'success' => false,
+                    'code' => 'RECONNECT_REQUIRED',
                 ]);
 
-            $this->assertStringContainsString('not connected', (string) $response->json('message'));
+            $this->assertStringContainsString('reconnect', strtolower((string) $response->json('message')));
         }
     }
 
@@ -141,7 +143,8 @@ class UpworkApiTest extends TestCase
                 'success' => true,
                 'data' => [
                     'jobs' => [],
-                    'total_count' => 0,
+                    'totalCount' => 0,
+                    'hasMore' => false,
                 ],
             ]);
     }
@@ -163,10 +166,11 @@ class UpworkApiTest extends TestCase
 
         $response = $this->getJson('/api/upwork/profile');
 
-        $response->assertStatus(400)
+        $response->assertStatus(429)
             ->assertJson([
                 'success' => false,
-                'message' => 'Upwork MCP Error (get_profile): Remote rate limit exceeded [trace_id: upw_trace_98231]',
+                'code' => 'UPWORK_RATE_LIMITED',
+                'traceId' => 'upw_trace_98231',
             ]);
 
         // Ensure internal token/secrets are not leaked
@@ -174,4 +178,70 @@ class UpworkApiTest extends TestCase
         $this->assertStringNotContainsString('active_token', $content);
         $this->assertStringNotContainsString('password', $content);
     }
+
+    public function test_candidate_accounts_endpoint_returns_safe_accounts(): void
+    {
+        UpworkConnection::create([
+            'provider' => 'upwork',
+            'access_token' => 'active_token',
+            'account_status' => 'selection_required',
+            'raw_metadata' => [
+                'talent_candidates' => [
+                    '0' => ['name' => 'Profile Alpha', 'org_uid' => 'secret_org_1'],
+                    '1' => ['name' => 'Profile Beta', 'org_uid' => 'secret_org_2'],
+                ],
+            ],
+            'is_active' => true,
+        ]);
+
+        $response = $this->getJson('/api/upwork/accounts');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    ['id' => '0', 'name' => 'Profile Alpha', 'role' => 'Freelancer'],
+                    ['id' => '1', 'name' => 'Profile Beta', 'role' => 'Freelancer'],
+                ],
+            ]);
+
+        $content = (string) $response->getContent();
+        $this->assertStringNotContainsString('secret_org_1', $content);
+        $this->assertStringNotContainsString('secret_org_2', $content);
+    }
+
+    public function test_select_account_endpoint_activates_chosen_talent_account(): void
+    {
+        $connection = UpworkConnection::create([
+            'provider' => 'upwork',
+            'access_token' => 'active_token',
+            'account_status' => 'selection_required',
+            'raw_metadata' => [
+                'talent_candidates' => [
+                    '0' => ['name' => 'Profile Alpha', 'org_uid' => 'org_alpha', 'role' => 'Freelancer', 'raw' => []],
+                    '1' => ['name' => 'Profile Beta', 'org_uid' => 'org_beta', 'role' => 'Freelancer', 'raw' => []],
+                ],
+            ],
+            'is_active' => true,
+        ]);
+
+        $response = $this->postJson('/api/upwork/accounts/select', [
+            'accountId' => '1',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'status' => 'selected',
+                    'accountName' => 'Profile Beta',
+                    'role' => 'Freelancer',
+                ],
+            ]);
+
+        $this->assertEquals('selected', $connection->fresh()->account_status);
+        $this->assertEquals('org_beta', $connection->fresh()->org_uid);
+    }
 }
+
+

@@ -22,7 +22,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (str_starts_with((string) config('app.url'), 'https://')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         Mcp::registerClient('upwork', function () {
+
             $mcpUrl = config('services.upwork.mcp_url', 'https://mcp.upwork.com/mcp');
             $clientId = config('services.upwork.client_id');
             $clientSecret = config('services.upwork.client_secret');

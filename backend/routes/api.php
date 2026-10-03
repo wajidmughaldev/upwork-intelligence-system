@@ -13,5 +13,8 @@ Route::prefix('upwork')->group(function () {
     Route::get('/jobs/{reference}', [UpworkApiController::class, 'jobDetails']);
     Route::get('/proposals', [UpworkApiController::class, 'proposals']);
     Route::get('/invitations', [UpworkApiController::class, 'invitations']);
+    Route::get('/accounts', [UpworkApiController::class, 'candidateAccounts']);
+    Route::post('/accounts/select', [UpworkApiController::class, 'selectAccount']);
     Route::post('/disconnect', [UpworkOAuthController::class, 'disconnect']);
 });
+

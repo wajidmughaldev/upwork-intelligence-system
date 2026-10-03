@@ -10,6 +10,7 @@ class UpworkConnection extends Model
 {
     protected $fillable = [
         'provider',
+        'client_id',
         'access_token',
         'refresh_token',
         'token_type',
@@ -18,9 +19,11 @@ class UpworkConnection extends Model
         'org_uid',
         'account_name',
         'account_role',
+        'account_status',
         'is_active',
         'raw_metadata',
     ];
+
 
     /**
      * Attributes that MUST NEVER be serialized into JSON responses or logs.
@@ -62,7 +65,7 @@ class UpworkConnection extends Model
     }
 
     /**
-     * Check if token is expired or close to expiration (within 60 seconds).
+     * Check if token is expired or close to expiration (within 120 seconds).
      */
     public function isExpired(): bool
     {
@@ -70,6 +73,7 @@ class UpworkConnection extends Model
             return false;
         }
 
-        return $this->expires_at->isPast() || $this->expires_at->diffInSeconds(now(), false) > -60;
+        return $this->expires_at->isPast() || $this->expires_at->diffInSeconds(now(), false) > -120;
     }
 }
+
