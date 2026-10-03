@@ -34,6 +34,9 @@ class AppServiceProvider extends ServiceProvider
             $redirectUri = config('services.upwork.redirect_uri') ?: url('mcp/oauth/upwork/callback');
 
             $client = Client::web($mcpUrl)
+                // Upwork's MCP gateway negotiates 2025-06-18 and rejects the
+                // newer discovery handshake with HTTP 400, so pin it explicitly.
+                ->withProtocolVersion(\Laravel\Mcp\Enums\ProtocolVersion::V2025_06_18)
                 ->withOAuth(
                     clientId: $clientId ?: null,
                     clientSecret: $clientSecret ?: null,

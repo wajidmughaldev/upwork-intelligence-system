@@ -34,6 +34,7 @@ class UpworkApiTest extends TestCase
             'org_uid' => 'internal_org_uid_12345_sensitive',
             'account_name' => 'Wajid Mughal',
             'account_role' => 'Freelancer',
+            'account_status' => 'selected',
             'is_active' => true,
         ]);
 

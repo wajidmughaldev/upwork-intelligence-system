@@ -52,6 +52,15 @@ class UpworkMcpService
             ];
         }
 
+        if ($connection->account_status !== 'selected') {
+            return [
+                'connected' => false,
+                'status' => 'pending',
+                'accountName' => null,
+                'role' => null,
+            ];
+        }
+
         return [
             'connected' => true,
             'accountName' => $connection->account_name ?? 'Freelancer Account',

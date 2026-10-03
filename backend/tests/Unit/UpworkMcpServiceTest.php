@@ -38,6 +38,7 @@ class UpworkMcpServiceTest extends TestCase
             'access_token' => 'active_oauth_token',
             'account_name' => 'John Doe',
             'account_role' => 'Freelancer',
+            'account_status' => 'selected',
             'is_active' => true,
         ]);
 
@@ -46,6 +47,20 @@ class UpworkMcpServiceTest extends TestCase
         $this->assertTrue($status['connected']);
         $this->assertEquals('John Doe', $status['accountName']);
         $this->assertEquals('Freelancer', $status['role']);
+    }
+
+    public function test_pending_account_sync_is_not_reported_as_connected(): void
+    {
+        UpworkConnection::create([
+            'provider' => 'upwork',
+            'access_token' => 'active_oauth_token',
+            'is_active' => true,
+        ]);
+
+        $status = $this->service->connectionStatus();
+
+        $this->assertFalse($status['connected']);
+        $this->assertEquals('pending', $status['status']);
     }
 
     public function test_write_operations_are_strictly_blocked_by_security_guard(): void
