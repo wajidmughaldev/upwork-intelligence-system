@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-slate-50" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Opportunity Intel - Profile Intelligence</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {},
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          },
+          fontFamily: {
+            headline: ["Inter", "sans-serif"],
+            display: ["Inter", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            label: ["Inter", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .material-symbols-outlined.fill {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+  </style>
+</head>
+<body class="h-full font-body text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-700">
+<!-- SideNavBar (Shared Anchor Component) -->
+<aside class="fixed top-0 left-0 h-screen w-64 border-r border-slate-200 bg-white flex flex-col justify-between z-30">
+<div class="h-full flex flex-col justify-between p-4">
+<!-- Top Section: Brand & Nav Links -->
+<div class="space-y-6">
+<!-- Brand Header -->
+<div class="flex items-center justify-between px-2 pt-1">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm font-headline font-bold text-base">
+<span class="material-symbols-outlined text-white" style="font-size: 20px;">psychology</span>
+</div>
+<div>
+<h1 class="text-sm font-bold font-headline text-slate-900 tracking-tight leading-none">Opportunity Intel</h1>
+<p class="text-[11px] font-medium text-slate-500 mt-1">Upwork Pro Engine</p>
+</div>
+</div>
+<button class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center gap-1 hover:bg-emerald-100 transition-colors">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            Sync Upwork
+          </button>
+</div>
+<!-- Primary Navigation List -->
+<nav class="space-y-1">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-slate-400">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Jobs -->
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">work</span>
+<span>Jobs</span>
+</div>
+<span class="px-1.5 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-600 rounded">142</span>
+</a>
+<!-- Applications -->
+<a class="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">send</span>
+<span>Applications</span>
+</div>
+<span class="px-1.5 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-600 rounded">12</span>
+</a>
+<!-- Profile Intelligence (ACTIVE) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium text-xs" href="#">
+<span class="material-symbols-outlined text-blue-600 fill">psychology</span>
+<span>Profile Intelligence</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-slate-400">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Nav & User Profile -->
+<div class="pt-4 border-t border-slate-200 space-y-4">
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-slate-400">menu_book</span>
+<span>Documentation</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-slate-400">help</span>
+<span>Help &amp; Support</span>
+</a>
+</div>
+<!-- User Profile Pill -->
+<div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
+<div class="flex items-center gap-2.5 overflow-hidden">
+<img class="w-8 h-8 rounded-full object-cover border border-slate-200 flex-shrink-0" data-alt="Close-up professional portrait of a software architect named Alex Rivera, wearing dark glasses and a neutral dark crewneck, seated in a bright studio office with soft diffused daylight and sharp tech focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrEPiNJ849Z2GaVIhc0BedFfHX0mG2ecvZuOZVUQaRf89vp9nrz2wz4BcETRL_I2tvJa1skszko066veFTq8BUxxFbsMDBvnC3XaZLwd5CFHEMos0rRsgTJBRrin6FPhK5TgK0f3chwf-yzVJXACk-2PkfSqZZ1mTiFjTSgHzL-jhdq0S9QZX51kuV3VgInzXKEXzqGqdvWNmyvxWji9-vDvvRI2dx7rkW1YmLlE5_deSYpsphDxuaZsylpuZCjpt3y98kTB3afWkK"/>
+<div class="truncate">
+<p class="text-xs font-semibold text-slate-900 truncate">Alex Rivera</p>
+<p class="text-[11px] text-slate-500 truncate">Top Rated Plus • $125/hr</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-200/50 transition-colors">
+<span class="material-symbols-outlined" style="font-size: 16px;">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopNavBar (Shared Anchor Component) -->
+<header class="sticky top-0 right-0 h-14 border-b border-slate-200 bg-white w-full pl-64 z-20">
+<div class="flex items-center justify-between px-6 h-14 w-full">
+<!-- Breadcrumb & Global Search -->
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<div class="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-500 whitespace-nowrap">
+<span>Profile</span>
+<span class="text-slate-300">/</span>
+<span class="text-slate-900 font-semibold">Profile Intelligence</span>
+</div>
+<div class="relative w-full max-w-sm ml-2">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" style="font-size: 16px;">search</span>
+<input class="w-full pl-8 pr-12 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-colors" placeholder="Search profile configuration, skills, portfolio..." type="text"/>
+<kbd class="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-medium text-slate-400 bg-white border border-slate-200 rounded shadow-2xs pointer-events-none">⌘K</kbd>
+</div>
+</div>
+<!-- Trailing Controls & Status -->
+<div class="flex items-center gap-3">
+<!-- Connected Status Badge -->
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span>Connected</span>
+</div>
+<!-- Trailing Primary Action -->
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-sm transition-colors duration-150">
+<span class="material-symbols-outlined" style="font-size: 16px;">bolt</span>
+<span>Quick Match</span>
+</button>
+<div class="h-4 w-px bg-slate-200 mx-0.5"></div>
+<!-- Notification Icon -->
+<button class="relative p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+</button>
+<!-- Tune / Settings Icon -->
+<button class="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
+<span class="material-symbols-outlined">tune</span>
+</button>
+<!-- Profile Avatar Link -->
+<div class="ml-1 pl-2 border-l border-slate-200">
+<img class="w-7 h-7 rounded-full object-cover border border-slate-300" data-alt="Sharp circular avatar photo of a confident technical consultant against a modern minimalist background, clean lighting in a professional software engineering firm." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1aL5RejMdR5efyyv5V4aORyb5Vse88UIzmo5Wbp3ar35iBTsxBrb1MC9sX6c7qjaz_kpUul9rv9zPiUbOUhaqVfTLG7bF5jmxIragh2j9R3Du0n5untmSaasBwyIqyfkISXKIP3E28MubzUHMAZ6GnuwBgBdNtKeCczYK2yq-agwwgU5iz-oVDbKPRHnuw5dPPOKdlcT_hkTCZkSz0iYE6N_5ERGGmz6XnXYV60NlLMHCAuLjBppgBCOQghdFTTOMZzlNaSObfWz0"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="pl-64 min-h-[calc(100vh-3.5rem)] bg-slate-50">
+<div class="max-w-7xl mx-auto p-6 md:p-8 space-y-6">
+<!-- Page Title & Top Actions Bar -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+<div>
+<h2 class="text-xl font-bold font-headline text-slate-900 tracking-tight">Profile Intelligence</h2>
+<p class="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
+            Configure your algorithmic matching persona, synced Upwork credentials, and high-conversion portfolio proof snippets.
+          </p>
+</div>
+<div class="flex items-center gap-2.5 flex-shrink-0">
+<button class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200 rounded-lg shadow-2xs transition-colors duration-150">
+<span class="material-symbols-outlined text-slate-500">sync</span>
+<span>Re-sync Upwork Profile</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-sm transition-colors duration-150">
+<span class="material-symbols-outlined">save</span>
+<span>Save Intelligence Settings</span>
+</button>
+</div>
+</div>
+<!-- Main Content 2-Column Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- ================= LEFT COLUMN (5/12 width) ================= -->
+<div class="lg:col-span-5 space-y-6">
+<!-- Section 1: Upwork Profile Data (Read-only Synced Data Card) -->
+<div class="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden">
+<div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600" style="font-size: 18px;">verified_user</span>
+<span class="text-xs font-semibold text-slate-900 uppercase tracking-wider">Upwork Verified Profile</span>
+</div>
+<span class="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Synced 12m ago
+              </span>
+</div>
+<div class="p-5 space-y-4">
+<!-- Title & Hourly Rate Header -->
+<div>
+<div class="flex items-start justify-between gap-2">
+<h3 class="text-sm font-bold text-slate-900 leading-snug">Senior Full-Stack Engineer (Laravel / React / Next.js)</h3>
+<div class="flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap">
+<span>$85.00 / hr</span>
+<span class="material-symbols-outlined text-slate-400" style="font-size: 14px;">lock</span>
+</div>
+</div>
+<div class="mt-2.5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+<span class="material-symbols-outlined text-amber-500 fill" style="font-size: 14px;">star</span>
+                    100% Job Success • Top Rated Plus
+                  </span>
+</div>
+</div>
+<!-- Stats Metrics Grid -->
+<div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-100">
+<div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+<p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Completed Jobs</p>
+<p class="text-sm font-bold text-slate-900 mt-0.5">48</p>
+</div>
+<div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+<p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Hours Billed</p>
+<p class="text-sm font-bold text-slate-900 mt-0.5">1,450+ hrs</p>
+</div>
+<div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+<p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">On-Time Delivery</p>
+<p class="text-sm font-bold text-emerald-600 mt-0.5">100%</p>
+</div>
+<div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+<p class="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Total Earnings</p>
+<p class="text-sm font-bold text-slate-900 mt-0.5">$180k+</p>
+</div>
+</div>
+<!-- Synced Skills Pills -->
+<div class="pt-2 border-t border-slate-100">
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs font-semibold text-slate-700">Synced Skills (11)</span>
+<span class="text-[11px] text-slate-400">From Upwork Roster</span>
+</div>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60">Laravel</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60">React</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60">TypeScript</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60">Next.js</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60">PostgreSQL</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60">Node.js</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60">REST API</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60">AWS</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60">Tailwind CSS</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60">Redis</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60">Docker</span>
+</div>
+</div>
+<!-- Profile Sync Note Callout -->
+<div class="p-3 bg-blue-50/60 border border-blue-100 rounded-lg flex items-start gap-2.5">
+<span class="material-symbols-outlined text-blue-600 flex-shrink-0 mt-0.5" style="font-size: 16px;">info</span>
+<p class="text-[11px] text-blue-900 leading-relaxed">
+                  Changes made directly on Upwork will automatically reflect within 15 minutes or upon manual sync.
+                </p>
+</div>
+</div>
+</div>
+<!-- Section 2: AI Matching Persona Summary -->
+<div class="bg-white rounded-lg border border-slate-200 shadow-2xs p-5 space-y-4">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600">tune</span>
+<h3 class="text-xs font-semibold text-slate-900 uppercase tracking-wider">AI Matching Persona Summary</h3>
+</div>
+<span class="text-[10px] font-semibold bg-blue-100/70 text-blue-700 px-2 py-0.5 rounded">Active Agent</span>
+</div>
+<!-- Tone Selector -->
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1.5">Preferred Proposal Tone</label>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-300 text-blue-700 font-medium rounded-lg text-xs">
+<span class="material-symbols-outlined fill text-blue-600" style="font-size: 14px;">check_circle</span>
+                  Direct, Technical, Problem-First
+                </span>
+<button class="text-xs text-slate-500 hover:text-slate-800 underline">Change</button>
+</div>
+</div>
+<!-- Availability -->
+<div class="pt-3 border-t border-slate-100">
+<label class="block text-xs font-semibold text-slate-700 mb-1">Availability Window</label>
+<div class="flex items-center gap-2 text-xs font-medium text-slate-800">
+<span class="material-symbols-outlined text-emerald-600" style="font-size: 16px;">event_available</span>
+<span>30+ hours / week (Ready for Immediate Contract)</span>
+</div>
+</div>
+<!-- Risk Filter Summary -->
+<div class="pt-3 border-t border-slate-100">
+<label class="block text-xs font-semibold text-slate-700 mb-1">Enforced Opportunity Guardrails</label>
+<div class="flex items-start gap-2 text-xs text-slate-600">
+<span class="material-symbols-outlined text-amber-600 flex-shrink-0 mt-0.5" style="font-size: 16px;">shield</span>
+<span>Auto-skip low spend (&lt;$5k) or &lt;4.5 star clients</span>
+</div>
+</div>
+</div>
+</div>
+<!-- ================= RIGHT COLUMN (7/12 width) ================= -->
+<div class="lg:col-span-7 space-y-6">
+<!-- Section 2 (Top Right): Custom AI Intelligence Profile (Editable Configuration Panel) -->
+<div class="bg-white rounded-lg border border-slate-200 shadow-2xs p-5 md:p-6 space-y-5">
+<div class="border-b border-slate-100 pb-3 flex items-start justify-between">
+<div>
+<h3 class="text-sm font-bold text-slate-900">Custom AI Intelligence Parameters</h3>
+<p class="text-xs text-slate-500 mt-0.5">Tailor the Opportunity Scoring algorithm to your exact project criteria.</p>
+</div>
+<span class="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">Config Mode</span>
+</div>
+<div class="space-y-4">
+<!-- Preferred Job Types & Pricing Thresholds -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Job Type Checkboxes -->
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1.5">Preferred Job Types</label>
+<div class="flex items-center gap-2.5">
+<label class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 cursor-pointer hover:bg-slate-100 transition-colors">
+<input checked="" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5" type="checkbox"/>
+<span>Fixed Price</span>
+</label>
+<label class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 cursor-pointer hover:bg-slate-100 transition-colors">
+<input checked="" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5" type="checkbox"/>
+<span>Hourly ($75+/hr)</span>
+</label>
+</div>
+</div>
+<!-- Min Budget / Hourly Rate Inputs -->
+<div class="grid grid-cols-2 gap-2">
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Min. Fixed Budget</label>
+<div class="relative">
+<input class="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600" type="text" value="$1,500"/>
+</div>
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-700 mb-1">Min. Hourly Rate</label>
+<div class="relative">
+<input class="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600" type="text" value="$75 / hr"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Strongest Tech Stack (Interactive Tag Input) -->
+<div class="pt-3 border-t border-slate-100">
+<label class="block text-xs font-semibold text-slate-700 mb-1.5">Strongest Tech Stack (High Opportunity Affinity)</label>
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium">
+                    Laravel 11
+                    <button class="hover:text-blue-950 font-bold ml-0.5">×</button>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium">
+                    React 19
+                    <button class="hover:text-blue-950 font-bold ml-0.5">×</button>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium">
+                    Next.js App Router
+                    <button class="hover:text-blue-950 font-bold ml-0.5">×</button>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium">
+                    Tailwind CSS
+                    <button class="hover:text-blue-950 font-bold ml-0.5">×</button>
+</span>
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-dashed border-slate-300 text-slate-600 hover:text-slate-900 hover:border-slate-400 text-xs font-medium transition-colors bg-white">
+<span class="material-symbols-outlined" style="font-size: 14px;">add</span>
+                    Add Tech
+                  </button>
+</div>
+</div>
+<!-- Preferred Industries -->
+<div class="pt-3 border-t border-slate-100">
+<label class="block text-xs font-semibold text-slate-700 mb-1.5">Preferred Industries &amp; Verticals</label>
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
+                    SaaS
+                    <button class="hover:text-emerald-950 font-bold ml-0.5">×</button>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
+                    FinTech
+                    <button class="hover:text-emerald-950 font-bold ml-0.5">×</button>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
+                    Cloud Tools
+                    <button class="hover:text-emerald-950 font-bold ml-0.5">×</button>
+</span>
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-dashed border-slate-300 text-slate-600 hover:text-slate-900 hover:border-slate-400 text-xs font-medium transition-colors bg-white">
+<span class="material-symbols-outlined" style="font-size: 14px;">add</span>
+                    Add Industry
+                  </button>
+</div>
+</div>
+<!-- Avoided Job Categories (Negative Filter) -->
+<div class="pt-3 border-t border-slate-100">
+<div class="flex items-center justify-between mb-1.5">
+<label class="text-xs font-semibold text-slate-700">Avoided Job Categories (Negative Filter)</label>
+<span class="text-[10px] text-amber-700 font-medium">Penalty: -40 Score</span>
+</div>
+<div class="flex flex-wrap items-center gap-1.5">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+                    WordPress Themes ✕
+                  </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+                    Unfiltered Data Scraping ✕
+                  </span>
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-dashed border-rose-300 text-rose-600 hover:text-rose-800 hover:border-rose-400 text-xs font-medium transition-colors bg-white">
+<span class="material-symbols-outlined" style="font-size: 14px;">add</span>
+                    Add Negative Filter
+                  </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 3 (Bottom Right): Portfolio Proof & Case Studies (Card List) -->
+<div class="bg-white rounded-lg border border-slate-200 shadow-2xs p-5 md:p-6 space-y-4">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+<div>
+<div class="flex items-center gap-2">
+<h3 class="text-sm font-bold text-slate-900">Portfolio Proof &amp; Evidence Snippets</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">3 Active Proofs</span>
+</div>
+<p class="text-xs text-slate-500 mt-0.5">Injected directly into proposal generations when matching job requirements are detected.</p>
+</div>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/70 border border-blue-200 rounded-lg transition-colors whitespace-nowrap self-start sm:self-auto">
+<span class="material-symbols-outlined" style="font-size: 16px;">add_circle</span>
+<span>+ Add Portfolio Item</span>
+</button>
+</div>
+<div class="space-y-3">
+<!-- Proof Card 1 -->
+<div class="p-4 rounded-lg border border-slate-200 hover:border-slate-300 bg-white transition-all">
+<div class="flex items-start justify-between gap-3">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<h4 class="text-xs font-bold text-slate-900">Multi-Tenant SaaS Dashboard</h4>
+<span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded">Primary Match</span>
+</div>
+<!-- Badges -->
+<div class="flex flex-wrap gap-1 pt-1">
+<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">Laravel 11</span>
+<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">Next.js 14</span>
+<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">Tailwind</span>
+<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">Stripe</span>
+</div>
+</div>
+<!-- Action buttons -->
+<div class="flex items-center gap-1 flex-shrink-0">
+<button class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors" title="Edit">
+<span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+</button>
+<button class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors" title="Delete">
+<span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+</button>
+</div>
+</div>
+<p class="text-xs text-slate-600 mt-2.5 font-medium leading-relaxed bg-slate-50 p-2.5 rounded border border-slate-100">
+                  "Built dashboard handling 50k MAU with &lt;100ms API response time."
+                </p>
+<div class="mt-2.5 flex items-center gap-2 text-[11px] font-medium text-slate-500">
+<span class="material-symbols-outlined text-emerald-600" style="font-size: 14px;">check</span>
+<span>99.9% Uptime • 45k Active Users • High Conversion Proof</span>
+</div>
+</div>
+<!-- Proof Card 2 -->
+<div class="p-4 rounded-lg border border-slate-200 hover:border-slate-300 bg-white transition-all">
+<div class="flex items-start justify-between gap-3">
+<div class="space-y-1">
+<h4 class="text-xs font-bold text-slate-900">High-Throughput REST API Microservice</h4>
+<!-- Badges -->
+<div class="flex flex-wrap gap-1 pt-1">
+<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">Laravel</span>
+<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">Redis</span>
+<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">Docker</span>
+<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">PostgreSQL</span>
+</div>
+</div>
+<!-- Action buttons -->
+<div class="flex items-center gap-1 flex-shrink-0">
+<button class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors" title="Edit">
+<span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+</button>
+<button class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors" title="Delete">
+<span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+</button>
+</div>
+</div>
+<p class="text-xs text-slate-600 mt-2.5 font-medium leading-relaxed bg-slate-50 p-2.5 rounded border border-slate-100">
+                  "Refactored legacy backend to process 2M daily webhook requests."
+                </p>
+<div class="mt-2.5 flex items-center gap-2 text-[11px] font-medium text-slate-500">
+<span class="material-symbols-outlined text-emerald-600" style="font-size: 14px;">check</span>
+<span>70% Latency Reduction • 2M Daily Webhooks</span>
+</div>
+</div>
+<!-- Proof Card 3 -->
+<div class="p-4 rounded-lg border border-slate-200 hover:border-slate-300 bg-white transition-all">
+<div class="flex items-start justify-between gap-3">
+<div class="space-y-1">
+<h4 class="text-xs font-bold text-slate-900">Real-Time Collaboration Portal</h4>
+<!-- Badges -->
+<div class="flex flex-wrap gap-1 pt-1">
+<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">React</span>
+<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">Node.js</span>
+<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">WebSockets</span>
+<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">Redis</span>
+</div>
+</div>
+<!-- Action buttons -->
+<div class="flex items-center gap-1 flex-shrink-0">
+<button class="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors" title="Edit">
+<span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+</button>
+<button class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors" title="Delete">
+<span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+</button>
+</div>
+</div>
+<p class="text-xs text-slate-600 mt-2.5 font-medium leading-relaxed bg-slate-50 p-2.5 rounded border border-slate-100">
+                  "Designed interactive canvas for team workflow automation."
+                </p>
+<div class="mt-2.5 flex items-center gap-2 text-[11px] font-medium text-slate-500">
+<span class="material-symbols-outlined text-emerald-600" style="font-size: 14px;">check</span>
+<span>Zero-lag Sync • 12 Enterprise Teams</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

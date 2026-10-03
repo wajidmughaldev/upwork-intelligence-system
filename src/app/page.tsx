@@ -22,7 +22,7 @@ export default function Home() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [proposalText, setProposalText] = useState<string>('');
   const [proposalTone, setProposalTone] = useState<string>('Direct');
-  const [proposalLength, setProposalLength] = useState<string>('Short');
+  const [proposalLength, setProposalLength] = useState<string>('Balanced');
   const [availableConnects, setAvailableConnects] = useState<number>(147);
   const [isConnected, setIsConnected] = useState<boolean>(true);
   const [applications, setApplications] = useState<Application[]>([]);
@@ -30,11 +30,18 @@ export default function Home() {
 
   // Hydrate state from mock service (backed by localStorage)
   useEffect(() => {
-    setJobs(upworkService.getJobs());
+    const loadedJobs = upworkService.getJobs();
+    setJobs(loadedJobs);
     setAvailableConnects(upworkService.getAvailableConnects());
     setIsConnected(upworkService.isConnected());
     setApplications(upworkService.getApplications());
-    setUserProfile(upworkService.getUserProfile());
+    const profile = upworkService.getUserProfile();
+    setUserProfile(profile);
+
+    // Default select first top job for analysis/proposal if not set
+    if (loadedJobs.length > 0 && !selectedJob) {
+      setSelectedJob(loadedJobs[0]);
+    }
   }, []);
 
   // Navigation handlers
@@ -51,7 +58,7 @@ export default function Home() {
     setSelectedJob(job);
     const initialText = aiService.generateProposal(job, userProfile, {
       tone: proposalTone,
-      length: proposalLength
+      length: proposalLength,
     });
     setProposalText(initialText);
     setCurrentTab('proposal');
@@ -64,7 +71,8 @@ export default function Home() {
 
   const handleSkipJob = (jobId: string) => {
     upworkService.skipJob(jobId);
-    setJobs([...upworkService.getJobs()]);
+    const updated = upworkService.getJobs();
+    setJobs([...updated]);
     if (selectedJob && selectedJob.id === jobId && currentTab === 'analysis') {
       setCurrentTab('jobs');
     }
@@ -83,7 +91,7 @@ export default function Home() {
     const newText = aiService.generateProposal(selectedJob, userProfile, {
       tone,
       length,
-      customInstructions
+      customInstructions,
     });
     setProposalText(newText);
     setProposalTone(tone);
@@ -118,7 +126,7 @@ export default function Home() {
         connectsCost: connectsUsed,
         availableConnects,
         remainingConnects: availableConnects,
-        errorReason: 'No job was selected for submission.'
+        errorReason: 'No job was selected for submission.',
       };
     }
 
@@ -137,13 +145,13 @@ export default function Home() {
         screeningAnswers: [
           {
             question: 'Do you have experience with multi-tenant architecture?',
-            answer: 'Yes, built multiple multi-tenant SaaS portals handling 50k+ active users.'
-          }
+            answer: 'Yes, built multiple multi-tenant SaaS portals handling 50k+ active users.',
+          },
         ],
         attachments: ['SaaS_Architecture_Case_Study.pdf'],
         tone: proposalTone,
         length: proposalLength,
-        originalJobBrief: selectedJob.originalBrief
+        originalJobBrief: selectedJob.originalBrief,
       },
       simulatedOutcome
     );
@@ -162,23 +170,41 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-100 font-sans text-slate-900 antialiased">
-      {/* App Sidebar */}
+    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
+      {/* 1:1 Stitch Fixed Sidebar */}
       <AppSidebar
         currentTab={currentTab}
         onSelectTab={handleSelectTab}
         applicationsCount={applications.length}
+        jobsCount={jobs.length}
+        onSync={() => {
+          setJobs([...upworkService.getJobs()]);
+          setAvailableConnects(upworkService.getAvailableConnects());
+          alert('Upwork live sync completed: refreshed feeds and account telemetry.');
+        }}
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Main Wrapper offset by sidebar w-64 */}
+      <div className="pl-64 flex-1 flex flex-col min-h-screen min-w-0">
+        {/* 1:1 Stitch Sticky Header */}
         <AppHeader
+          currentTab={currentTab}
           availableConnects={availableConnects}
           isConnected={isConnected}
           onRefreshConnects={() => setAvailableConnects(upworkService.getAvailableConnects())}
+          onQuickMatch={() => {
+            const bestJob = [...jobs].sort((a, b) => b.opportunityScore - a.opportunityScore)[0];
+            if (bestJob) {
+              handleViewAnalysis(bestJob);
+            } else {
+              setCurrentTab('jobs');
+            }
+          }}
+          onOpenSettings={() => setCurrentTab('settings')}
         />
 
-        <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto">
+        {/* View Canvas */}
+        <main className="flex-1">
           {currentTab === 'dashboard' && (
             <DashboardView
               availableConnects={availableConnects}

@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Opportunity Intel - Dashboard / Best Matches</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {},
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          },
+          fontFamily: {
+            headline: ["Inter", "sans-serif"],
+            display: ["Inter", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            label: ["Inter", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      vertical-align: middle;
+      display: inline-block;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-body antialiased min-h-screen">
+<!-- Shared Component: SideNavBar -->
+<aside class="fixed top-0 left-0 h-screen w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between bg-white dark:bg-slate-900 z-30">
+<div class="h-full flex flex-col justify-between p-4">
+<div class="space-y-6">
+<!-- Brand Header -->
+<div class="flex items-center gap-3 px-2 py-1">
+<div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm flex-shrink-0">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div class="min-w-0">
+<div class="text-sm font-bold font-headline text-slate-900 dark:text-white tracking-tight leading-tight">Opportunity Intel</div>
+<div class="text-xs font-medium text-slate-500 leading-none mt-0.5">Upwork Pro Engine</div>
+</div>
+</div>
+<!-- Workspace Sync Pill -->
+<div class="bg-slate-100 rounded-lg p-2.5 flex items-center justify-between text-xs border border-slate-200/60">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="font-medium text-slate-700">Live Sync</span>
+</div>
+<button class="text-blue-600 font-medium hover:text-blue-700 hover:underline">
+            Sync Upwork
+          </button>
+</div>
+<!-- Navigation Tabs -->
+<nav class="space-y-1">
+<!-- Tab 1: Dashboard (ACTIVE) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-medium text-xs transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Tab 2: Jobs -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg">work</span>
+<span>Jobs</span>
+</a>
+<!-- Tab 3: Applications -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg">send</span>
+<span class="flex-1">Applications</span>
+<span class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.5 rounded font-medium">12</span>
+</a>
+<!-- Tab 4: Profile Intelligence -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg">psychology</span>
+<span>Profile Intelligence</span>
+</a>
+<!-- Tab 5: Settings -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+<!-- Footer Navigation Items -->
+<div class="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg">menu_book</span>
+<span>Documentation</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium text-xs hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-lg">help</span>
+<span>Help &amp; Support</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Shared Component: TopNavBar -->
+<header class="sticky top-0 right-0 h-14 border-b border-slate-200 dark:border-slate-800 w-full pl-64 bg-white dark:bg-slate-900 z-20">
+<div class="flex items-center justify-between px-6 h-14 w-full">
+<!-- Breadcrumb / Search on Left -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 text-xs">
+<span class="text-slate-500 font-medium">Dashboard</span>
+<span class="text-slate-400">/</span>
+<span class="text-slate-900 font-semibold">Best Matches</span>
+</div>
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
+<input class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-9 py-1 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600" placeholder="Search opportunities..." type="text"/>
+<kbd class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] bg-white border border-slate-200 rounded px-1 py-0.5 text-slate-400 font-mono">⌘K</kbd>
+</div>
+</div>
+<!-- Trailing Controls & User Avatar -->
+<div class="flex items-center gap-3">
+<!-- Status Indicator: Upwork Connected -->
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+<span>Connected</span>
+</div>
+<!-- Trailing Primary Action -->
+<button class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm">
+<span class="material-symbols-outlined text-sm">sync</span>
+<span>Quick Match</span>
+</button>
+<!-- Icon Actions -->
+<div class="flex items-center border-l border-slate-200 pl-3 gap-1">
+<button aria-label="Notifications" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors relative">
+<span class="material-symbols-outlined text-lg">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+</button>
+<button aria-label="Filters" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-lg">tune</span>
+</button>
+</div>
+<!-- Profile Avatar -->
+<div class="flex items-center gap-2.5 pl-2 border-l border-slate-200">
+<div class="w-7 h-7 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 font-semibold text-xs">
+            AR
+          </div>
+<div class="hidden lg:block text-left">
+<div class="text-xs font-semibold text-slate-800 leading-tight">Alex Rivera</div>
+<div class="text-[10px] text-slate-500 leading-tight">Pro Freelancer</div>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Canvas Content Area -->
+<main class="pl-64 pt-6 pb-16 px-8 max-w-7xl mx-auto">
+<!-- Top Summary Metrics Row (4 Cards) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+<!-- Metric 1: Upwork Account -->
+<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-slate-500">Upwork Account</span>
+<span class="flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            Active
+          </span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="text-xl font-bold tracking-tight text-slate-900">Connected</span>
+</div>
+<div class="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+<span class="material-symbols-outlined text-sm text-slate-400">schedule</span>
+<span>Last synced 4m ago</span>
+</div>
+</div>
+<!-- Metric 2: Available Connects -->
+<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-slate-500">Available Connects</span>
+<span class="material-symbols-outlined text-blue-600 text-lg">token</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="text-xl font-bold tracking-tight text-slate-900">147</span>
+<span class="text-xs text-slate-400">tokens</span>
+</div>
+<div class="mt-2 text-xs text-emerald-600 font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span>+30 renewed 2 days ago</span>
+</div>
+</div>
+<!-- Metric 3: Strong Matches -->
+<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-slate-500">Strong Matches</span>
+<span class="material-symbols-outlined text-emerald-600 text-lg">auto_awesome</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="text-xl font-bold tracking-tight text-slate-900">8</span>
+<span class="text-xs text-slate-400">opportunities</span>
+</div>
+<div class="mt-2 text-xs text-emerald-600 font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">add_circle</span>
+<span>+3 new since yesterday</span>
+</div>
+</div>
+<!-- Metric 4: Total Applications -->
+<div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+<div class="flex items-center justify-between">
+<span class="text-xs font-medium text-slate-500">Active Proposals</span>
+<span class="material-symbols-outlined text-slate-400 text-lg">send</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="text-xl font-bold tracking-tight text-slate-900">12</span>
+<span class="text-xs text-slate-400">in pipeline</span>
+</div>
+<div class="mt-2 text-xs text-slate-600 flex items-center gap-1">
+<span class="font-medium text-amber-700">3 awaiting reply</span>
+<span class="text-slate-300">•</span>
+<span class="font-medium text-blue-700">1 interview</span>
+</div>
+</div>
+</div>
+<!-- Main Section Header & Filters -->
+<div class="mb-5 flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-lg font-bold text-slate-900 font-headline tracking-tight">Top Opportunities</h1>
+<p class="text-xs text-slate-500 mt-0.5">AI-scored opportunities matched against your profile skills, rate history, and past project wins.</p>
+</div>
+<!-- Action & View Controls -->
+<div class="flex items-center gap-2 self-start md:self-auto">
+<div class="flex items-center bg-white border border-slate-200 rounded-lg p-0.5 shadow-sm text-xs">
+<button class="px-2.5 py-1 rounded bg-slate-100 font-semibold text-slate-900">All Matches (18)</button>
+<button class="px-2.5 py-1 text-slate-600 hover:text-slate-900 font-medium">High Score &gt; 90 (8)</button>
+<button class="px-2.5 py-1 text-slate-600 hover:text-slate-900 font-medium">Fixed Price (11)</button>
+<button class="px-2.5 py-1 text-slate-600 hover:text-slate-900 font-medium">Hourly (7)</button>
+</div>
+<div class="relative">
+<select class="appearance-none bg-white border border-slate-200 rounded-lg pl-3 pr-8 py-1.5 text-xs text-slate-700 font-medium shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-600">
+<option>Highest Match Score</option>
+<option>Newest Posted</option>
+<option>Highest Budget</option>
+<option>Client Spent: High to Low</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Job Cards List -->
+<div class="space-y-3.5">
+<!-- Card 1 -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-sm transition-all duration-150">
+<div class="flex items-start justify-between gap-4">
+<div class="space-y-1 flex-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                92 / 100 • Strong Match
+              </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+<span class="material-symbols-outlined text-xs text-blue-600" style="font-variation-settings: 'FILL' 1;">verified</span>
+                Verified Payment ★ 4.9 (48 reviews)
+              </span>
+</div>
+<h2 class="text-base font-semibold text-slate-900 pt-1 hover:text-blue-600 cursor-pointer transition-colors">
+              Laravel + React SaaS Developer
+            </h2>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 font-medium">
+<span class="text-slate-900 font-semibold">$2,000 Fixed</span>
+<span>•</span>
+<span>Posted 38 minutes ago</span>
+<span>•</span>
+<span>Expert Level</span>
+<span>•</span>
+<span class="text-slate-600">14 Connects required</span>
+</div>
+</div>
+<button class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors" title="Save Job">
+<span class="material-symbols-outlined text-lg">bookmark</span>
+</button>
+</div>
+<!-- Client Info Details Strip -->
+<div class="mt-3 flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+<span class="material-symbols-outlined text-sm text-slate-400">domain</span>
+<span class="font-medium">$120K+ spent</span>
+<span>•</span>
+<span>94% hire rate</span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-slate-400">public</span>
+            United States (UTC-5)
+          </span>
+</div>
+<!-- AI Recommendation Box -->
+<div class="mt-3 bg-blue-50/70 border border-blue-100 rounded-lg p-2.5 text-xs text-blue-900 flex items-start gap-2">
+<span class="material-symbols-outlined text-base text-blue-600 flex-shrink-0 mt-0.5">lightbulb</span>
+<p class="leading-relaxed">
+<span class="font-semibold text-blue-950">AI Analysis:</span> Strong technical alignment with your recent multi-tenant SaaS case studies. High proposal conversion likelihood.
+          </p>
+</div>
+<!-- Skills and CTA Controls -->
+<div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">Laravel</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">React</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">REST API</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">AWS</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">MySQL</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">Tailwind CSS</span>
+</div>
+<div class="flex items-center gap-2 self-end sm:self-auto">
+<button class="px-3 py-1.5 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-xs font-medium transition-colors">
+              View Analysis
+            </button>
+<button class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-sm">auto_fix_high</span>
+<span>Generate Proposal</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-sm transition-all duration-150">
+<div class="flex items-start justify-between gap-4">
+<div class="space-y-1 flex-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                95 / 100 • Exceptional Match
+              </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+<span class="material-symbols-outlined text-xs text-purple-600" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+                Enterprise Client ★ 5.0
+              </span>
+</div>
+<h2 class="text-base font-semibold text-slate-900 pt-1 hover:text-blue-600 cursor-pointer transition-colors">
+              Full-Stack Next.js Developer for AI Content Platform
+            </h2>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 font-medium">
+<span class="text-slate-900 font-semibold">$75 - $95 / hr</span>
+<span>•</span>
+<span>30+ hrs/wk</span>
+<span>•</span>
+<span>Posted 1 hour ago</span>
+<span>•</span>
+<span>Expert</span>
+<span>•</span>
+<span class="text-slate-600">16 Connects required</span>
+</div>
+</div>
+<button class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors" title="Save Job">
+<span class="material-symbols-outlined text-lg">bookmark</span>
+</button>
+</div>
+<div class="mt-3 flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+<span class="material-symbols-outlined text-sm text-slate-400">payments</span>
+<span class="font-medium">$350K+ spent</span>
+<span>•</span>
+<span class="text-emerald-700 font-medium">Top Rated Plus Client</span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-slate-400">public</span>
+            United Kingdom
+          </span>
+</div>
+<div class="mt-3 bg-blue-50/70 border border-blue-100 rounded-lg p-2.5 text-xs text-blue-900 flex items-start gap-2">
+<span class="material-symbols-outlined text-base text-blue-600 flex-shrink-0 mt-0.5">lightbulb</span>
+<p class="leading-relaxed">
+<span class="font-semibold text-blue-950">AI Analysis:</span> Perfect match for your Next.js 14 App Router and OpenAI API experience. Client pays above your standard rate.
+          </p>
+</div>
+<div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">Next.js</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">TypeScript</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">OpenAI API</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">Supabase</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">Tailwind CSS</span>
+</div>
+<div class="flex items-center gap-2 self-end sm:self-auto">
+<button class="px-3 py-1.5 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-xs font-medium transition-colors">
+              View Analysis
+            </button>
+<button class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-sm">auto_fix_high</span>
+<span>Generate Proposal</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-sm transition-all duration-150">
+<div class="flex items-start justify-between gap-4">
+<div class="space-y-1 flex-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                89 / 100 • Strong Match
+              </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+<span class="material-symbols-outlined text-xs text-blue-600" style="font-variation-settings: 'FILL' 1;">verified</span>
+                Payment Verified ★ 4.8
+              </span>
+</div>
+<h2 class="text-base font-semibold text-slate-900 pt-1 hover:text-blue-600 cursor-pointer transition-colors">
+              Python AI Integration Engineer (LangChain &amp; RAG Pipeline)
+            </h2>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 font-medium">
+<span class="text-slate-900 font-semibold">$3,500 Fixed</span>
+<span>•</span>
+<span>Posted 2 hours ago</span>
+<span>•</span>
+<span>Intermediate/Expert</span>
+<span>•</span>
+<span class="text-slate-600">12 Connects required</span>
+</div>
+</div>
+<button class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors" title="Save Job">
+<span class="material-symbols-outlined text-lg">bookmark</span>
+</button>
+</div>
+<div class="mt-3 flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+<span class="material-symbols-outlined text-sm text-slate-400">payments</span>
+<span class="font-medium">$85K+ spent</span>
+<span>•</span>
+<span>Quick response history</span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-slate-400">public</span>
+            Canada
+          </span>
+</div>
+<div class="mt-3 bg-blue-50/70 border border-blue-100 rounded-lg p-2.5 text-xs text-blue-900 flex items-start gap-2">
+<span class="material-symbols-outlined text-base text-blue-600 flex-shrink-0 mt-0.5">lightbulb</span>
+<p class="leading-relaxed">
+<span class="font-semibold text-blue-950">AI Analysis:</span> Vector database architecture closely aligns with your GitHub repository portfolio samples.
+          </p>
+</div>
+<div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">Python</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">LangChain</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">Pinecone</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">FastAPI</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">Docker</span>
+</div>
+<div class="flex items-center gap-2 self-end sm:self-auto">
+<button class="px-3 py-1.5 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-xs font-medium transition-colors">
+              View Analysis
+            </button>
+<button class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-sm">auto_fix_high</span>
+<span>Generate Proposal</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-sm transition-all duration-150">
+<div class="flex items-start justify-between gap-4">
+<div class="space-y-1 flex-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                86 / 100 • Good Match
+              </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+<span class="material-symbols-outlined text-xs text-blue-600" style="font-variation-settings: 'FILL' 1;">verified</span>
+                Payment Verified ★ 4.95
+              </span>
+</div>
+<h2 class="text-base font-semibold text-slate-900 pt-1 hover:text-blue-600 cursor-pointer transition-colors">
+              Senior React Native Mobile App Engineer for Fintech MVP
+            </h2>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 font-medium">
+<span class="text-slate-900 font-semibold">$60 - $80 / hr</span>
+<span>•</span>
+<span>20 hrs/wk</span>
+<span>•</span>
+<span>Posted 3 hours ago</span>
+<span>•</span>
+<span>Expert</span>
+<span>•</span>
+<span class="text-slate-600">10 Connects required</span>
+</div>
+</div>
+<button class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors" title="Save Job">
+<span class="material-symbols-outlined text-lg">bookmark</span>
+</button>
+</div>
+<div class="mt-3 flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+<span class="material-symbols-outlined text-sm text-slate-400">payments</span>
+<span class="font-medium">$210K+ spent</span>
+<span>•</span>
+<span class="text-indigo-700 font-medium">Repeat freelancer employer</span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-slate-400">public</span>
+            Germany
+          </span>
+</div>
+<div class="mt-3 bg-blue-50/70 border border-blue-100 rounded-lg p-2.5 text-xs text-blue-900 flex items-start gap-2">
+<span class="material-symbols-outlined text-base text-blue-600 flex-shrink-0 mt-0.5">lightbulb</span>
+<p class="leading-relaxed">
+<span class="font-semibold text-blue-950">AI Analysis:</span> Matches cross-platform financial dashboard experience. High probability of long-term contract extension.
+          </p>
+</div>
+<div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">React Native</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">TypeScript</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">Redux Toolkit</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">Stripe API</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">Expo</span>
+</div>
+<div class="flex items-center gap-2 self-end sm:self-auto">
+<button class="px-3 py-1.5 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-xs font-medium transition-colors">
+              View Analysis
+            </button>
+<button class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-sm">auto_fix_high</span>
+<span>Generate Proposal</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination / Footer Info -->
+<div class="mt-6 flex items-center justify-between border-t border-slate-200 pt-4 text-xs text-slate-500">
+<div>
+        Showing <span class="font-medium text-slate-900">4</span> of <span class="font-medium text-slate-900">18</span> high-scored opportunities
+      </div>
+<div class="flex items-center gap-2">
+<button class="px-2.5 py-1 border border-slate-200 rounded text-slate-400 bg-slate-50 cursor-not-allowed">Previous</button>
+<button class="px-2.5 py-1 border border-slate-200 rounded text-slate-700 hover:bg-slate-50">1</button>
+<button class="px-2.5 py-1 border border-slate-200 rounded text-slate-700 hover:bg-slate-50">2</button>
+<button class="px-2.5 py-1 border border-slate-200 rounded text-slate-700 hover:bg-slate-50">Next</button>
+</div>
+</div>
+</main>
+</body></html>

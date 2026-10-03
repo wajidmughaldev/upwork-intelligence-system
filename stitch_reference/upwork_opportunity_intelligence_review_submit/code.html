@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Upwork Opportunity Intelligence - Review &amp; Submit</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {},
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          },
+          spacing: {},
+          fontFamily: {
+            headline: ["Inter"],
+            display: ["Inter"],
+            body: ["Inter"],
+            label: ["Inter"]
+          },
+          fontSize: {}
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-body antialiased min-h-screen">
+<!-- ================= FIXED LEFT SIDEBAR ================= -->
+<aside class="fixed top-0 left-0 h-screen w-64 border-r border-slate-200 bg-white flex flex-col justify-between z-30">
+<div class="h-full flex flex-col justify-between p-4">
+<div>
+<!-- Brand Header -->
+<div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+</div>
+<div>
+<h1 class="text-sm font-bold font-headline text-slate-900 tracking-tight leading-none">Opportunity Intel</h1>
+<span class="text-xs font-medium text-slate-400 font-body">Upwork Pro Engine</span>
+</div>
+</div>
+</div>
+<!-- Sync Button -->
+<button class="w-full mb-4 px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-colors duration-150">
+<span class="material-symbols-outlined text-blue-600" data-icon="sync">sync</span>
+          Sync Upwork
+        </button>
+<!-- Navigation Tabs -->
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="work">work</span>
+<span>Jobs</span>
+</a>
+<!-- Active tab: Applications -->
+<a class="flex items-center justify-between px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium text-xs" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-600" data-icon="send">send</span>
+<span>Applications</span>
+</div>
+<span class="px-1.5 py-0.5 text-[10px] font-semibold bg-blue-600 text-white rounded-full">12</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span>Profile Intelligence</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+<!-- Footer navigation and user profile -->
+<div class="pt-4 border-t border-slate-100 space-y-3">
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span>Documentation</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Help &amp; Support</span>
+</a>
+</div>
+<div class="flex items-center gap-3 px-2 pt-2 border-t border-slate-100">
+<div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center font-bold text-xs text-slate-700">
+            AR
+          </div>
+<div class="overflow-hidden">
+<p class="text-xs font-semibold text-slate-900 truncate">Alex Rivera</p>
+<p class="text-[10px] text-slate-500 font-medium truncate">Pro Freelancer</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- ================= STICKY TOP HEADER ================= -->
+<header class="sticky top-0 right-0 h-14 border-b border-slate-200 bg-white w-full pl-64 z-20 flex items-center justify-between px-6">
+<!-- Breadcrumbs / Status Left -->
+<div class="flex items-center gap-2 text-xs">
+<span class="text-slate-400">Applications</span>
+<span class="text-slate-300">/</span>
+<span class="text-slate-400">Proposals</span>
+<span class="text-slate-300">/</span>
+<span class="font-medium text-slate-800">Review &amp; Submit</span>
+</div>
+<!-- Header Actions Right -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-[11px] font-medium text-emerald-700">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+        Connected
+      </div>
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="bolt">bolt</span>
+        Quick Match
+      </button>
+<div class="h-4 w-px bg-slate-200 mx-1"></div>
+<button class="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors" title="Notifications">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors" title="Filters &amp; Tune">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+</button>
+</div>
+</header>
+<!-- ================= MAIN CONTENT CANVAS ================= -->
+<main class="pl-64 pb-24">
+<div class="max-w-6xl mx-auto px-8 py-6 space-y-6">
+<!-- Back Action Link -->
+<div>
+<a class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-blue-600 transition-colors" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+          Back to Proposal Studio
+        </a>
+</div>
+<!-- Title & Headline -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<h2 class="text-xl font-bold font-headline text-slate-900 tracking-tight">Review &amp; Submit Proposal</h2>
+<p class="text-xs text-slate-500 mt-1">Carefully review terms, pricing, proposal narrative, and connect allocation before final submission.</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-xs text-slate-400">Step 3 of 3</span>
+<div class="w-24 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+<div class="bg-blue-600 h-full w-full rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Warning Callout Banner -->
+<div class="rounded-lg bg-amber-50/70 border border-amber-200/80 p-3.5 flex items-start gap-3 text-xs text-amber-900">
+<span class="material-symbols-outlined text-amber-600 mt-0.5" data-icon="shield">shield</span>
+<div>
+<span class="font-semibold text-amber-950">Submission Safety Guarantee:</span>
+          Submission requires your explicit confirmation. This system will never automatically submit proposals without your direct input.
+        </div>
+</div>
+<!-- Job Summary Header Card -->
+<div class="bg-white rounded-lg border border-slate-200 p-5 shadow-sm">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+<div class="space-y-1">
+<div class="flex items-center gap-2.5">
+<h3 class="text-base font-semibold text-slate-900">Laravel + React SaaS Developer</h3>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+<span class="material-symbols-outlined text-xs text-emerald-700" data-icon="check_circle">check_circle</span>
+                92/100 • Strong Match
+              </span>
+</div>
+<div class="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
+<span class="font-semibold text-slate-700">$2,000 Client Budget</span>
+<span>•</span>
+<span>14-16 Connects</span>
+<span>•</span>
+<span>Posted 38m ago</span>
+<span>•</span>
+<span class="inline-flex items-center gap-1 text-slate-700">
+<span class="material-symbols-outlined text-amber-500 text-xs" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+                4.9 Verified Payment
+              </span>
+<span>•</span>
+<span class="text-blue-600 font-medium">Enterprise Tier</span>
+</div>
+</div>
+<button class="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+            View Original Posting
+            <span class="material-symbols-outlined text-xs" data-icon="open_in_new">open_in_new</span>
+</button>
+</div>
+</div>
+<!-- 2-Column Review Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- LEFT COLUMN: Financials & Connects (5 cols) -->
+<div class="lg:col-span-5 space-y-6">
+<!-- Financials Panel -->
+<div class="bg-white rounded-lg border border-slate-200 p-5 shadow-sm space-y-4">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-500" data-icon="payments">payments</span>
+<h4 class="text-sm font-semibold text-slate-900">Bid &amp; Payout Breakdown</h4>
+</div>
+<span class="text-[11px] font-medium px-2 py-0.5 bg-slate-100 text-slate-600 rounded">Fixed Price</span>
+</div>
+<div class="space-y-3 text-xs">
+<div class="flex justify-between items-center text-slate-600">
+<span>Proposed Bid Amount</span>
+<span class="font-semibold text-slate-900 text-sm">$1,800.00</span>
+</div>
+<div class="flex justify-between items-center text-slate-500">
+<span>Upwork Service Fee (10%)</span>
+<span class="text-rose-600 font-medium">-$180.00</span>
+</div>
+<div class="pt-3 border-t border-slate-100 flex justify-between items-baseline">
+<div>
+<span class="font-semibold text-slate-900 text-xs">Net You Receive</span>
+<p class="text-[10px] text-slate-400">Estimated after standard escrow fee</p>
+</div>
+<span class="text-base font-bold text-emerald-600 font-headline">$1,620.00</span>
+</div>
+</div>
+<!-- Milestone Preview -->
+<div class="pt-3 border-t border-slate-100">
+<p class="text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-2">Milestone Schedule (2 Phases)</p>
+<div class="space-y-2">
+<div class="p-2.5 rounded bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+<div>
+<span class="font-medium text-slate-800">Milestone 1: MVP Architecture</span>
+<p class="text-[10px] text-slate-500">Database schema, auth, multi-tenant setup</p>
+</div>
+<span class="font-semibold text-slate-900">$900.00</span>
+</div>
+<div class="p-2.5 rounded bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+<div>
+<span class="font-medium text-slate-800">Milestone 2: Production Release</span>
+<p class="text-[10px] text-slate-500">React Query dashboards, tests, deployment</p>
+</div>
+<span class="font-semibold text-slate-900">$900.00</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Connects Calculation Panel -->
+<div class="bg-white rounded-lg border border-slate-200 p-5 shadow-sm space-y-4">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-500" data-icon="toll">toll</span>
+<h4 class="text-sm font-semibold text-slate-900">Connects Balance &amp; Consumption</h4>
+</div>
+<span class="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">Safe Buffer</span>
+</div>
+<div class="grid grid-cols-3 gap-2 py-1 text-center">
+<div class="p-2.5 rounded bg-slate-50 border border-slate-100">
+<span class="text-[10px] text-slate-500 block">Required</span>
+<span class="text-sm font-bold text-slate-900 font-headline">16</span>
+</div>
+<div class="p-2.5 rounded bg-slate-50 border border-slate-100">
+<span class="text-[10px] text-slate-500 block">Current</span>
+<span class="text-sm font-bold text-slate-600 font-headline">147</span>
+</div>
+<div class="p-2.5 rounded bg-blue-50 border border-blue-100">
+<span class="text-[10px] text-blue-600 block">Remaining</span>
+<span class="text-sm font-bold text-blue-700 font-headline">131</span>
+</div>
+</div>
+<div class="p-3 bg-slate-50 rounded border border-slate-100 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+</div>
+<div class="text-xs">
+<p class="font-medium text-slate-900">High Conviction Score</p>
+<p class="text-[11px] text-slate-500">Projected Value ROI: ~$142 per Connect spent</p>
+</div>
+</div>
+</div>
+<!-- Attachments Panel -->
+<div class="bg-white rounded-lg border border-slate-200 p-5 shadow-sm space-y-3">
+<h4 class="text-sm font-semibold text-slate-900">Attached Artifacts</h4>
+<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-rose-100 text-rose-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" data-icon="picture_as_pdf">picture_as_pdf</span>
+</div>
+<div>
+<p class="text-xs font-medium text-slate-800">SaaS_Architecture_Case_Study.pdf</p>
+<p class="text-[10px] text-slate-400">1.8 MB • Uploaded &amp; Scanned</p>
+</div>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1 text-slate-400 hover:text-slate-700 rounded" title="Preview">
+<span class="material-symbols-outlined text-xs" data-icon="visibility">visibility</span>
+</button>
+<button class="p-1 text-slate-400 hover:text-rose-600 rounded" title="Remove">
+<span class="material-symbols-outlined text-xs" data-icon="close">close</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: Proposal Content & Screening (7 cols) -->
+<div class="lg:col-span-7 space-y-6">
+<!-- Full Proposal Preview Card -->
+<div class="bg-white rounded-lg border border-slate-200 p-6 shadow-sm space-y-5">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-500" data-icon="article">article</span>
+<h4 class="text-sm font-semibold text-slate-900">Proposal Narrative (AI Optimized)</h4>
+</div>
+<span class="text-[11px] text-slate-400">5 Structured Sections</span>
+</div>
+<!-- Structured Section Blocks -->
+<div class="space-y-4 text-xs leading-relaxed">
+<div class="p-3.5 rounded-lg bg-slate-50/80 border border-slate-100">
+<span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider block mb-1">Hook</span>
+<p class="text-slate-800">
+                  Hi, I noticed you need a Laravel + React developer to build out your SaaS dashboard and API integrations. I specialize in architecting clean, maintainable SaaS platforms that handle rapid tenant growth without compromising performance.
+                </p>
+</div>
+<div class="p-3.5 rounded-lg bg-slate-50/80 border border-slate-100">
+<span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider block mb-1">Problem Identified</span>
+<p class="text-slate-800">
+                  Scaling frontend state while maintaining fast REST API response times under multi-tenant database load often creates severe bottlenecks in growing applications.
+                </p>
+</div>
+<div class="p-3.5 rounded-lg bg-slate-50/80 border border-slate-100">
+<span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block mb-1">Proposed Architecture Solution</span>
+<p class="text-slate-800">
+                  I will implement modular Laravel 11 API endpoints paired with React Query and lightweight UI components. This eliminates redundant network waterfalls, leverages client caching, and isolates tenant models safely.
+                </p>
+</div>
+<div class="p-3.5 rounded-lg bg-slate-50/80 border border-slate-100">
+<span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block mb-1">Relevant Proof &amp; Credentials</span>
+<p class="text-slate-800">
+                  Recently completed a similar multi-tenant SaaS dashboard (99.9% uptime, 150ms p95 latency) serving over 40,000 monthly active users. Code clean, thoroughly tested with Pest and Jest.
+                </p>
+</div>
+<div class="p-3.5 rounded-lg bg-slate-50/80 border border-slate-100">
+<span class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block mb-1">Call to Action</span>
+<p class="text-slate-800 font-medium">
+                  Do you have existing Figma mockups ready, or should we refine UI requirements and database schema together first?
+                </p>
+</div>
+</div>
+</div>
+<!-- Screening Questions & Answers -->
+<div class="bg-white rounded-lg border border-slate-200 p-6 shadow-sm space-y-4">
+<div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+<span class="material-symbols-outlined text-slate-500" data-icon="quiz">quiz</span>
+<h4 class="text-sm font-semibold text-slate-900">Client Screening Questions</h4>
+</div>
+<div class="space-y-4 text-xs">
+<div class="p-3 rounded bg-slate-50 border border-slate-100 space-y-2">
+<p class="font-medium text-slate-800">
+<span class="text-blue-600 font-semibold mr-1">Q1:</span>
+                  Do you have experience with multi-tenant database indexing in Laravel?
+                </p>
+<div class="pl-4 border-l-2 border-blue-400 py-0.5 text-slate-600">
+                  Yes, implemented tenant-scoped schemas and optimized compound PostgreSQL indexes for 45k MAU on a production logistics SaaS.
+                </div>
+</div>
+<div class="p-3 rounded bg-slate-50 border border-slate-100 space-y-2">
+<p class="font-medium text-slate-800">
+<span class="text-blue-600 font-semibold mr-1">Q2:</span>
+                  What is your availability for 9:00 AM EST sync calls?
+                </p>
+<div class="pl-4 border-l-2 border-blue-400 py-0.5 text-slate-600">
+                  Fully available Monday through Friday for daily standups in US Eastern timezone.
+                </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Screen Sticky Bottom Bar -->
+<div class="fixed bottom-0 right-0 pl-64 w-full bg-white border-t border-slate-200 px-8 py-3.5 flex items-center justify-between z-10">
+<div class="flex items-center gap-3 text-xs text-slate-500">
+<span class="flex items-center gap-1 text-emerald-600 font-medium">
+<span class="material-symbols-outlined text-xs" data-icon="verified_user">verified_user</span>
+          Compliance checks passed
+        </span>
+<span>•</span>
+<span>Estimated connect debit: 16 Connects</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-medium transition-colors">
+          Back to Edit
+        </button>
+<button class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors shadow-sm flex items-center gap-1.5">
+<span>Prepare Submission</span>
+<span class="material-symbols-outlined text-xs" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<!-- ================= MODAL DIALOG OVERLAY ================= -->
+<!-- Centered modal dialog explicitly required by the prompt -->
+<div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+<div class="w-full max-w-[480px] bg-white rounded-xl shadow-2xl border border-slate-200 p-6 z-50 animate-in fade-in zoom-in-95 duration-200">
+<!-- Modal Top Header -->
+<div class="flex items-start justify-between pb-3 border-b border-slate-100">
+<div class="flex items-start gap-3">
+<div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+<span class="material-symbols-outlined text-xl" data-icon="verified">verified</span>
+</div>
+<div>
+<h3 class="text-sm font-bold font-headline text-slate-900">Confirm Proposal Submission</h3>
+<p class="text-xs text-slate-500 mt-0.5">You are about to submit this proposal using 16 Connects.</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-100 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="close">close</span>
+</button>
+</div>
+<!-- Modal Body Details Box -->
+<div class="my-5 rounded-lg bg-slate-50 border border-slate-200/80 p-4 space-y-2.5 text-xs">
+<div class="flex justify-between items-center">
+<span class="text-slate-500">Target Job:</span>
+<span class="font-semibold text-slate-900 truncate max-w-[240px]">Laravel + React SaaS Developer</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-slate-500">Bid Amount:</span>
+<span class="font-semibold text-slate-900">$1,800 Fixed <span class="text-emerald-600 font-normal">(Net $1,620)</span></span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-slate-500">Connect Cost:</span>
+<span class="font-semibold text-slate-900">16 Connects <span class="text-slate-400 font-normal">(131 remaining)</span></span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-slate-500">Estimated Upwork Response:</span>
+<span class="font-medium text-slate-700">Typically within 4 hours</span>
+</div>
+</div>
+<!-- Explicit confirmation notice -->
+<div class="mb-5 flex items-start gap-2.5 p-3 rounded-lg bg-blue-50/60 border border-blue-100 text-xs text-blue-900">
+<span class="material-symbols-outlined text-blue-600 mt-0.5 text-sm" data-icon="info">info</span>
+<p class="leading-relaxed">
+          This action deducts 16 connects from your Upwork balance and sends your proposal directly to the client.
+        </p>
+</div>
+<!-- Modal Action Footer -->
+<div class="flex items-center justify-end gap-3 pt-2">
+<button class="px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-medium transition-colors">
+          Cancel
+        </button>
+<button class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium shadow-sm flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="send">send</span>
+<span>Confirm &amp; Submit</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

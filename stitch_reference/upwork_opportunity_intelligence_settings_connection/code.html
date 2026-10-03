@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-slate-50" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings / Connection - Upwork Opportunity Intelligence</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {},
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          fontFamily: {
+            headline: ["Inter", "sans-serif"],
+            display: ["Inter", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            label: ["Inter", "sans-serif"]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 1.25rem;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 9999px;
+      background: #2563EB;
+      cursor: pointer;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    input[type=range]::-moz-range-thumb {
+      height: 16px;
+      width: 16px;
+      border-radius: 9999px;
+      background: #2563EB;
+      cursor: pointer;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-50 text-slate-900 font-body antialiased flex">
+<!-- SideNavBar Component -->
+<aside class="fixed top-0 left-0 h-screen w-64 border-r border-slate-200 bg-white flex flex-col justify-between z-30">
+<div class="h-full flex flex-col justify-between p-4">
+<!-- Header / Logo -->
+<div class="space-y-4">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm tracking-tight shadow-sm">
+<span class="material-symbols-outlined text-white" style="font-size: 18px;">psychology</span>
+</div>
+<div>
+<div class="text-sm font-bold font-headline text-slate-900 tracking-tight leading-none">Opportunity Intel</div>
+<div class="text-[11px] font-medium text-slate-500 mt-0.5">Upwork Pro Engine</div>
+</div>
+</div>
+</div>
+<!-- Sync Button -->
+<button class="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs transition-colors duration-150 border border-slate-200" type="button">
+<span class="material-symbols-outlined text-slate-600" style="font-size: 15px;">sync</span>
+<span>Sync Upwork</span>
+</button>
+<!-- Navigation Tabs -->
+<nav class="space-y-1 pt-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">work</span>
+<span>Jobs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">send</span>
+<span>Applications</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span>Profile Intelligence</span>
+</a>
+<!-- Active Nav item: Settings -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium text-xs" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+<!-- Footer & User Meta -->
+<div class="pt-4 border-t border-slate-100 space-y-3">
+<div class="space-y-0.5">
+<a class="flex items-center gap-3 px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[17px]">menu_book</span>
+<span>Documentation</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 font-medium text-xs hover:bg-slate-100 transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[17px]">help</span>
+<span>Help &amp; Support</span>
+</a>
+</div>
+<div class="flex items-center justify-between px-2 pt-2 border-t border-slate-100">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-7 h-7 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center font-semibold text-xs text-slate-700">
+              W
+            </div>
+<div class="min-w-0">
+<div class="text-xs font-semibold text-slate-800 truncate">Alex Rivera / Wajid</div>
+<div class="text-[10px] text-slate-400 truncate">Pro Freelancer Tier</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-sm cursor-pointer hover:text-slate-600">unfold_more</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Container -->
+<div class="flex-1 flex flex-col min-h-screen pl-64">
+<!-- TopNavBar Component -->
+<header class="sticky top-0 right-0 h-14 border-b border-slate-200 bg-white/95 backdrop-blur-sm z-20 w-full flex items-center justify-between px-8">
+<!-- Breadcrumb & Search -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 text-xs font-medium text-slate-500">
+<span class="hover:text-slate-900 transition-colors cursor-pointer">Settings</span>
+<span class="text-slate-300">/</span>
+<span class="text-slate-900 font-semibold">Connection &amp; AI Engine</span>
+</div>
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+<input class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg placeholder-slate-400 text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all" placeholder="Search settings, thresholds..." type="text"/>
+</div>
+</div>
+<!-- Trailing Controls & Status -->
+<div class="flex items-center gap-3">
+<!-- Status Badge -->
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-200 text-[11px] font-medium text-green-700">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-green-600"></span>
+</span>
+<span>Connected</span>
+</div>
+<!-- Quick Match CTA -->
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg shadow-sm transition-colors duration-150" type="button">
+<span class="material-symbols-outlined text-[15px]">bolt</span>
+<span>Quick Match</span>
+</button>
+<div class="h-4 w-px bg-slate-200 mx-0.5"></div>
+<!-- Action Icons -->
+<button class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors" type="button">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors" type="button">
+<span class="material-symbols-outlined">tune</span>
+</button>
+<!-- Avatar -->
+<div class="w-7 h-7 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center font-medium text-xs text-slate-700 ml-1">
+          W
+        </div>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-1 p-8 max-w-5xl w-full mx-auto space-y-6">
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
+<div>
+<h1 class="text-xl font-bold font-headline text-slate-900 tracking-tight">Settings &amp; AI Configuration</h1>
+<p class="text-xs font-medium text-slate-500 mt-1">Manage Upwork MCP integration credentials, automated matching strictness, and AI proposal synthesis preferences.</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3.5 py-1.5 text-xs font-medium text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg shadow-sm transition-colors duration-150" type="button">
+            Reset Defaults
+          </button>
+<button class="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors duration-150" type="button">
+<span class="material-symbols-outlined text-[16px]">check</span>
+<span>Save Changes</span>
+</button>
+</div>
+</div>
+<!-- SECTION 1: Upwork MCP Connection -->
+<div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+<div class="p-5 border-b border-slate-100">
+<div class="flex items-center justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600">lan</span>
+<h2 class="text-sm font-semibold font-headline text-slate-900">Upwork MCP Connection</h2>
+</div>
+<p class="text-xs text-slate-500 mt-1">Live connection gateway syncing job feeds, client history, and proposal draft dispatches via Model Context Protocol.</p>
+</div>
+<!-- Live Status -->
+<div class="flex items-center gap-2 bg-green-50 border border-green-200 px-3 py-1 rounded-full">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-green-600"></span>
+</span>
+<span class="text-xs font-semibold text-green-700">MCP Active &amp; Listening</span>
+</div>
+</div>
+</div>
+<div class="p-5 space-y-4">
+<!-- Connection Meta Box -->
+<div class="bg-slate-50 border border-slate-200 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex items-start gap-3.5">
+<div class="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-700 shrink-0 shadow-xs">
+<span class="material-symbols-outlined text-blue-600">hub</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="text-xs font-semibold text-slate-900">Wajid (Freelancer Account)</span>
+<span class="text-slate-300">•</span>
+<span class="inline-flex items-center gap-1 text-[11px] font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+<span class="material-symbols-outlined text-[13px]">toll</span> 147 Connects Available
+                  </span>
+</div>
+<div class="text-[11px] text-slate-500 mt-1.5 flex flex-wrap items-center gap-y-1 gap-x-2">
+<span>Last handshake: <span class="font-medium text-slate-700">2 mins ago</span></span>
+<span class="text-slate-300">•</span>
+<span>Latency: <span class="font-medium text-slate-700">42ms</span></span>
+<span class="text-slate-300">•</span>
+<span>Rate Limit: <span class="font-medium text-green-700">98% remaining</span></span>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-2 shrink-0">
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg shadow-2xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px] text-slate-500">refresh</span>
+<span>Refresh Connection</span>
+</button>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg shadow-2xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px] text-slate-500">sensors</span>
+<span>Test MCP Ping</span>
+</button>
+<button class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 border border-transparent rounded-lg transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">link_off</span>
+<span>Disconnect Account</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- SECTION 2: AI Proposal & Analysis Settings -->
+<div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+<div class="p-5 border-b border-slate-100">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600">smart_toy</span>
+<h2 class="text-sm font-semibold font-headline text-slate-900">AI Proposal &amp; Analysis Engine</h2>
+</div>
+<p class="text-xs text-slate-500 mt-1">Tailor the LLM synthesis parameters used across Proposal Studio and automatic Opportunity Scoring.</p>
+</div>
+<div class="p-5 space-y-5">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<!-- Default Tone -->
+<div class="space-y-1.5">
+<label class="block text-xs font-medium text-slate-700">Default Proposal Tone</label>
+<select class="w-full text-xs bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-blue-500">
+<option selected="">Direct, Problem-First (Recommended)</option>
+<option>Technical Deep-Dive</option>
+<option>Executive / Business-focused</option>
+</select>
+<p class="text-[11px] text-slate-400">Leads with client's technical challenge before presenting solution architecture.</p>
+</div>
+<!-- Default Length -->
+<div class="space-y-1.5">
+<label class="block text-xs font-medium text-slate-700">Default Proposal Length</label>
+<select class="w-full text-xs bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-blue-500">
+<option selected="">Balanced (~200 words)</option>
+<option>Concise (&lt;150 words)</option>
+<option>Comprehensive / Detailed (&gt;300 words)</option>
+</select>
+<p class="text-[11px] text-slate-400">Optimal reading length evaluated against high-performing Upwork contracts.</p>
+</div>
+</div>
+<!-- Strictness Segment -->
+<div class="space-y-2 pt-2 border-t border-slate-100">
+<div class="flex items-center justify-between">
+<label class="text-xs font-medium text-slate-700">AI Analysis Strictness</label>
+<span class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">Strict Match Protocol</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+<label class="flex flex-col p-3 rounded-lg border-2 border-blue-600 bg-blue-50/40 cursor-pointer transition-all">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-blue-900">Strict / High Precision</span>
+<span class="material-symbols-outlined text-blue-600 text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<span class="text-[11px] text-blue-700 mt-1">90+ Score Only. Prioritizes exact stack match &amp; proven budget.</span>
+</label>
+<label class="flex flex-col p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition-all">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-slate-800">Balanced</span>
+<span class="material-symbols-outlined text-slate-300 text-sm">radio_button_unchecked</span>
+</div>
+<span class="text-[11px] text-slate-500 mt-1">80+ Score. Flexible match on adjacent technical stacks.</span>
+</label>
+<label class="flex flex-col p-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition-all">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-slate-800">Permissive</span>
+<span class="material-symbols-outlined text-slate-300 text-sm">radio_button_unchecked</span>
+</div>
+<span class="text-[11px] text-slate-500 mt-1">65+ Score. Wide discovery radar for speculative opportunities.</span>
+</label>
+</div>
+</div>
+<!-- Evidence Toggle -->
+<div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+<div>
+<div class="text-xs font-medium text-slate-800">Evidence Auto-Injection</div>
+<div class="text-[11px] text-slate-500">Automatically attach top relevant portfolio case study proof snippet into draft body.</div>
+</div>
+<!-- Switch -->
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- SECTION 3: Opportunity Filter Preferences -->
+<div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+<div class="p-5 border-b border-slate-100">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-600">filter_alt</span>
+<h2 class="text-sm font-semibold font-headline text-slate-900">Opportunity Scoring &amp; Filtering Thresholds</h2>
+</div>
+<p class="text-xs text-slate-500 mt-1">Set the global baseline criteria for jobs displayed in your high-conviction radar.</p>
+</div>
+<div class="p-5 space-y-5">
+<!-- Slider Control -->
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<label class="text-xs font-medium text-slate-700">Minimum Opportunity Score</label>
+<span class="text-xs font-semibold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                75 / 100 <span class="font-normal text-slate-500">(Good Match &amp; above)</span>
+</span>
+</div>
+<input class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" max="95" min="50" type="range" value="75"/>
+<div class="flex justify-between text-[10px] text-slate-400 font-medium">
+<span>50 (Broad)</span>
+<span>75 (Recommended Baseline)</span>
+<span>95 (Super-Prime Only)</span>
+</div>
+</div>
+<!-- Controls Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+<!-- Client Rating -->
+<div class="space-y-1.5">
+<label class="block text-xs font-medium text-slate-700">Minimum Client Rating</label>
+<select class="w-full text-xs bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-800 focus:outline-none focus:border-blue-500">
+<option selected="">4.8+ Stars (Recommended)</option>
+<option>4.5+ Stars</option>
+<option>Any Rating</option>
+</select>
+</div>
+<!-- Min Fixed Budget -->
+<div class="space-y-1.5">
+<label class="block text-xs font-medium text-slate-700">Minimum Fixed Budget</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-semibold">$</span>
+<input class="w-full pl-6 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500" type="text" value="1,000"/>
+</div>
+</div>
+<!-- Min Hourly Rate -->
+<div class="space-y-1.5">
+<label class="block text-xs font-medium text-slate-700">Minimum Hourly Rate</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-semibold">$</span>
+<input class="w-full pl-6 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-blue-500" type="text" value="75 / hr"/>
+</div>
+</div>
+</div>
+<!-- Auto-Reject Checkbox -->
+<div class="pt-3 border-t border-slate-100">
+<label class="flex items-start gap-2.5 cursor-pointer">
+<input checked="" class="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4" type="checkbox"/>
+<div>
+<span class="text-xs font-medium text-slate-800">Auto-Reject Flagged Clients</span>
+<p class="text-[11px] text-slate-500">Auto-penalize payment unverified or &lt;50% hire rate clients by deducting 30 points from opportunity score.</p>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- SECTION 4: Compliance & Safety Notice -->
+<div class="bg-blue-50/60 border border-blue-200 rounded-xl p-4 flex items-start gap-3.5 shadow-2xs">
+<div class="w-8 h-8 rounded-lg bg-blue-100 border border-blue-200 text-blue-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+</div>
+<div class="space-y-1">
+<h3 class="text-xs font-bold text-blue-950 font-headline">Upwork ToS Compliance &amp; Manual Confirmation Guarantee</h3>
+<p class="text-[11px] leading-relaxed text-blue-900/80">
+<strong class="font-semibold text-blue-950">Compliance Notice:</strong> This system strictly operates as an intelligence and proposal drafting assistant. In full compliance with Upwork Terms of Service, all proposal submissions and contract actions require explicit, one-click user review and confirmation. Automated headless bidding is prohibited.
+          </p>
+</div>
+</div>
+<!-- Bottom Sticky/Docked Action Bar -->
+<div class="pt-3 flex items-center justify-between border-t border-slate-200 text-xs">
+<div class="flex items-center gap-2 text-slate-500">
+<span class="material-symbols-outlined text-green-600 text-sm" style="font-variation-settings: 'FILL' 1;">cloud_done</span>
+<span>All changes auto-saved to local secure vault</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3.5 py-1.5 font-medium text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg shadow-2xs transition-colors" type="button">
+            Discard
+          </button>
+<button class="inline-flex items-center gap-1.5 px-4 py-1.5 font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">save</span>
+<span>Save Settings</span>
+</button>
+</div>
+</div>
+</main>
+</div>
+</body></html>
