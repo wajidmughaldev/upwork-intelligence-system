@@ -99,6 +99,7 @@ class UpworkResponseMapper
 
     /**
      * Map raw job search results to safe DTO list.
+     * Exposes ONLY safe ciphertext (~02...) references. Numeric IDs are never exposed.
      *
      * @param  array<string, mixed>  $searchRaw
      * @return array{jobs: array<int, mixed>, totalCount: int, hasMore: bool}
@@ -116,8 +117,7 @@ class UpworkResponseMapper
                 continue;
             }
 
-            // Expose ONLY safe reference (~02... or ciphertext string) for navigation
-            $reference = isset($job['ciphertext']) ? (string) $job['ciphertext'] : (isset($job['job_reference']) ? (string) $job['job_reference'] : (isset($job['reference']) ? (string) $job['reference'] : (isset($job['id']) ? (string) $job['id'] : null)));
+            $reference = static::resolvePublicJobReference($job);
 
             $jobType = null;
             if (isset($job['job_type'])) {
@@ -156,6 +156,7 @@ class UpworkResponseMapper
 
     /**
      * Map single job details response to safe DTO.
+     * Exposes ONLY safe ciphertext (~02...) references. Numeric IDs are never exposed.
      *
      * @param  array<string, mixed>  $jobRaw
      * @return array<string, mixed>
@@ -164,7 +165,7 @@ class UpworkResponseMapper
     {
         $job = $jobRaw['job'] ?? $jobRaw['data'] ?? $jobRaw;
 
-        $reference = isset($job['ciphertext']) ? (string) $job['ciphertext'] : (isset($job['job_reference']) ? (string) $job['job_reference'] : (isset($job['reference']) ? (string) $job['reference'] : (isset($job['id']) ? (string) $job['id'] : null)));
+        $reference = static::resolvePublicJobReference($job);
 
         $jobType = null;
         if (isset($job['job_type'])) {
@@ -206,6 +207,7 @@ class UpworkResponseMapper
 
     /**
      * Map proposals response to safe DTO list.
+     * Excludes internal proposal IDs from public Phase 2A DTO.
      *
      * @param  array<string, mixed>  $proposalsRaw
      * @return array<int, array<string, mixed>>
@@ -224,7 +226,6 @@ class UpworkResponseMapper
             }
 
             $results[] = [
-                'reference' => isset($prop['id']) ? (string) $prop['id'] : (isset($prop['proposal_id']) ? (string) $prop['proposal_id'] : null),
                 'jobTitle' => isset($prop['job_title']) ? (string) $prop['job_title'] : (isset($prop['title']) ? (string) $prop['title'] : null),
                 'clientName' => isset($prop['client_name']) ? (string) $prop['client_name'] : null,
                 'status' => isset($prop['status']) ? (string) $prop['status'] : null,
@@ -240,6 +241,7 @@ class UpworkResponseMapper
 
     /**
      * Map invitations response to safe DTO list.
+     * Excludes internal invitation IDs from public Phase 2A DTO.
      *
      * @param  array<string, mixed>  $invitationsRaw
      * @return array<int, array<string, mixed>>
@@ -258,7 +260,6 @@ class UpworkResponseMapper
             }
 
             $results[] = [
-                'invitationReference' => isset($inv['id']) ? (string) $inv['id'] : (isset($inv['invitation_id']) ? (string) $inv['invitation_id'] : null),
                 'jobTitle' => isset($inv['job_title']) ? (string) $inv['job_title'] : (isset($inv['title']) ? (string) $inv['title'] : null),
                 'clientName' => isset($inv['client_name']) ? (string) $inv['client_name'] : null,
                 'receivedDate' => isset($inv['received_date']) ? (string) $inv['received_date'] : (isset($inv['created_at']) ? (string) $inv['created_at'] : null),
@@ -267,5 +268,33 @@ class UpworkResponseMapper
         }
 
         return $results;
+    }
+
+    /**
+     * Only allow ciphertext (~02...) or non-numeric public job reference string.
+     * Numeric IDs are never exposed in the public DTO.
+     */
+    protected static function resolvePublicJobReference(array $job): ?string
+    {
+        $candidates = array_filter([
+            $job['ciphertext'] ?? null,
+            $job['job_reference'] ?? null,
+            $job['reference'] ?? null,
+            $job['id'] ?? null,
+        ], fn ($v) => is_string($v) && ! empty($v));
+
+        foreach ($candidates as $val) {
+            if (str_starts_with($val, '~02') || str_starts_with($val, '~')) {
+                return $val;
+            }
+        }
+
+        foreach ($candidates as $val) {
+            if (! ctype_digit($val) && ! is_numeric($val)) {
+                return $val;
+            }
+        }
+
+        return null;
     }
 }

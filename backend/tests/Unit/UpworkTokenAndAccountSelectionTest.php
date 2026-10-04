@@ -256,6 +256,7 @@ class UpworkTokenAndAccountSelectionTest extends TestCase
             'is_active' => true,
         ]);
 
+        \Laravel\Sanctum\Sanctum::actingAs(\App\Models\User::factory()->create());
         $response = $this->getJson('/api/upwork/accounts');
 
         $response->assertStatus(410)

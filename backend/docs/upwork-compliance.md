@@ -54,3 +54,11 @@ To maintain full compliance and user transparency, the application MUST NOT allo
 
 - **Field Minimization**: Only request and expose fields strictly necessary for the product workflow. Extra fields returned by MCP tools are stripped by server-side response mappers ([UpworkResponseMapper.php](file:///C:/Users/wajid/.gemini/antigravity-ide/scratch/upwork-opportunity-intelligence/backend/app/Services/Upwork/Mappers/UpworkResponseMapper.php)).
 - **Provenance Preservation**: Maintain original Upwork attribution, job references, and provenance metadata wherever presented to the user.
+
+---
+
+## 5. Account Ownership & Single-User Scope Boundary
+
+- **Single-User Scope**: Phase 2A uses a single authenticated application-user connection model. Multi-user Upwork connection ownership must be implemented before enabling additional application users.
+- **Authentication Boundary**: All private Upwork integration API endpoints (`/api/upwork/*`) and OAuth connect routes (`/oauth/upwork/connect`) require authenticated application user sessions (`auth:sanctum`).
+

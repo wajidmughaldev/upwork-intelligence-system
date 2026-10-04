@@ -25,27 +25,33 @@ class UpworkOAuthController extends Controller
 
     /**
      * Start the Upwork OAuth 2.1 flow with PKCE.
+     * Requires application-user authentication and validates return_to.
      */
     public function connect(Request $request): RedirectResponse
     {
+        $safeReturnTo = $this->sanitizeReturnTo($request->query('return_to'));
+
         try {
             /** @var \Laravel\Mcp\WebClient $client */
             $client = Mcp::client('upwork');
 
             return $client->oAuthClient()->redirect(
-                returnTo: $request->query('return_to', 'http://localhost:3000')
+                returnTo: $safeReturnTo
             );
         } catch (Exception $e) {
             Log::error('Failed to initiate Upwork OAuth flow', [
                 'error' => $e->getMessage(),
             ]);
 
-            return redirect('http://localhost:3000?upwork_error=' . urlencode($e->getMessage()));
+            $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
+
+            return redirect($safeReturnTo . $separator . 'upwork_error=' . urlencode($e->getMessage()));
         }
     }
 
     /**
      * Handle OAuth callback from Upwork MCP server.
+     * Registered unauthenticated for provider callback, but binds connection server-side.
      */
     public function handleCallback(
         string $provider,
@@ -53,6 +59,8 @@ class UpworkOAuthController extends Controller
         TokenSet $token,
         ?string $returnTo = null
     ): RedirectResponse {
+        $safeReturnTo = $this->sanitizeReturnTo($returnTo);
+
         try {
             $clientId = null;
             try {
@@ -79,32 +87,32 @@ class UpworkOAuthController extends Controller
             try {
                 $this->upworkService->syncAccountMetadata();
             } catch (AccountSelectionRequiredException) {
-                $targetUrl = $returnTo ?? 'http://localhost:3000';
-                $separator = str_contains($targetUrl, '?') ? '&' : '?';
+                $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
 
-                return redirect($targetUrl . $separator . 'upwork_account_selection=1');
+                return redirect($safeReturnTo . $separator . 'upwork_account_selection=1');
             } catch (NoEligibleAccountException) {
-                $targetUrl = $returnTo ?? 'http://localhost:3000';
-                $separator = str_contains($targetUrl, '?') ? '&' : '?';
+                $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
 
-                return redirect($targetUrl . $separator . 'upwork_error=no_eligible_account');
+                return redirect($safeReturnTo . $separator . 'upwork_error=no_eligible_account');
             }
 
-            $targetUrl = $returnTo ?? 'http://localhost:3000';
-            $separator = str_contains($targetUrl, '?') ? '&' : '?';
+            $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
 
-            return redirect($targetUrl . $separator . 'upwork_connected=1');
+            return redirect($safeReturnTo . $separator . 'upwork_connected=1');
         } catch (Exception $e) {
             Log::error('Error processing Upwork OAuth callback', [
                 'error' => $e->getMessage(),
             ]);
 
-            return redirect('http://localhost:3000?upwork_error=' . urlencode('Failed to store connection'));
+            $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
+
+            return redirect($safeReturnTo . $separator . 'upwork_error=' . urlencode('Failed to store connection'));
         }
     }
 
     /**
      * Disconnect active Upwork account.
+     * State-changing action requiring POST and auth middleware.
      */
     public function disconnect(Request $request): mixed
     {
@@ -124,7 +132,56 @@ class UpworkOAuthController extends Controller
             ]);
         }
 
-        return redirect('http://localhost:3000?upwork_disconnected=1');
+        $safeReturnTo = $this->sanitizeReturnTo($request->query('return_to'));
+        $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
+
+        return redirect($safeReturnTo . $separator . 'upwork_disconnected=1');
+    }
+
+    /**
+     * Strict allowlist validation for return_to parameter to prevent open redirect vulnerabilities.
+     */
+    public function sanitizeReturnTo(?string $returnTo): string
+    {
+        $defaultFrontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
+        if (! is_string($defaultFrontendUrl) || empty($defaultFrontendUrl)) {
+            $defaultFrontendUrl = 'http://localhost:3000';
+        }
+
+        if (empty($returnTo)) {
+            return $defaultFrontendUrl;
+        }
+
+        // Reject dangerous schemes or protocol-relative URLs
+        if (str_starts_with($returnTo, '//') || str_contains(strtolower($returnTo), 'javascript:') || str_contains(strtolower($returnTo), 'data:')) {
+            return $defaultFrontendUrl;
+        }
+
+        // Relative path starting with '/' -> prepend frontend URL origin
+        if (str_starts_with($returnTo, '/')) {
+            return rtrim($defaultFrontendUrl, '/') . $returnTo;
+        }
+
+        // Parse full target URL
+        $parsedTarget = parse_url($returnTo);
+        $parsedFrontend = parse_url($defaultFrontendUrl);
+
+        if (! is_array($parsedTarget) || empty($parsedTarget['host'])) {
+            return $defaultFrontendUrl;
+        }
+
+        $targetHost = strtolower($parsedTarget['host']);
+        $targetScheme = strtolower($parsedTarget['scheme'] ?? 'http');
+        $targetPort = $parsedTarget['port'] ?? null;
+
+        $allowedHost = strtolower($parsedFrontend['host'] ?? 'localhost');
+        $allowedScheme = strtolower($parsedFrontend['scheme'] ?? 'http');
+        $allowedPort = $parsedFrontend['port'] ?? null;
+
+        if ($targetHost === $allowedHost && $targetScheme === $allowedScheme && $targetPort === $allowedPort) {
+            return $returnTo;
+        }
+
+        return $defaultFrontendUrl;
     }
 }
-

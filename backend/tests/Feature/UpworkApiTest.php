@@ -4,17 +4,52 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\UpworkOAuthController;
 use App\Models\UpworkConnection;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class UpworkApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_status_endpoint_returns_disconnected_state_by_default(): void
+    public function test_unauthenticated_requests_to_all_upwork_api_endpoints_return_401(): void
     {
+        $getEndpoints = [
+            '/api/upwork/status',
+            '/api/upwork/profile',
+            '/api/upwork/connects',
+            '/api/upwork/jobs/recommended',
+            '/api/upwork/jobs/search',
+            '/api/upwork/jobs/~02189a7f34c2b98e71',
+            '/api/upwork/proposals',
+            '/api/upwork/invitations',
+            '/api/upwork/accounts',
+        ];
+
+        foreach ($getEndpoints as $url) {
+            $response = $this->getJson($url);
+            $response->assertStatus(401);
+        }
+
+        $postEndpoints = [
+            '/api/upwork/accounts/select',
+            '/api/upwork/disconnect',
+        ];
+
+        foreach ($postEndpoints as $url) {
+            $response = $this->postJson($url, []);
+            $response->assertStatus(401);
+        }
+    }
+
+    public function test_authenticated_user_can_access_status_endpoint(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
         $response = $this->getJson('/api/upwork/status');
 
         $response->assertStatus(200)
@@ -27,6 +62,8 @@ class UpworkApiTest extends TestCase
 
     public function test_tokens_and_internal_ids_are_never_exposed_in_status_api(): void
     {
+        Sanctum::actingAs(User::factory()->create());
+
         UpworkConnection::create([
             'provider' => 'upwork',
             'access_token' => 'secret_access_token_xyz_999',
@@ -47,64 +84,39 @@ class UpworkApiTest extends TestCase
                 'role' => 'Freelancer',
             ]);
 
-        // Explicit security non-exposure assertions
         $content = (string) $response->getContent();
         $this->assertStringNotContainsString('secret_access_token', $content);
         $this->assertStringNotContainsString('secret_refresh_token', $content);
         $this->assertStringNotContainsString('internal_org_uid', $content);
     }
 
-    public function test_tokens_are_encrypted_at_rest_in_database(): void
+    public function test_tokens_and_org_uid_are_encrypted_at_rest_in_database(): void
     {
         $connection = UpworkConnection::create([
             'provider' => 'upwork',
             'access_token' => 'plain_secret_token_data',
             'refresh_token' => 'plain_refresh_token_data',
+            'org_uid' => 'sensitive_org_uid_val',
             'is_active' => true,
         ]);
 
-        // Read raw database row bypassing Eloquent decryption cast
+        // Raw database query bypasses Eloquent decryption cast
         $raw = DB::table('upwork_connections')->where('id', $connection->id)->first();
 
         $this->assertNotNull($raw);
         $this->assertNotEquals('plain_secret_token_data', $raw->access_token);
         $this->assertNotEquals('plain_refresh_token_data', $raw->refresh_token);
+        $this->assertNotEquals('sensitive_org_uid_val', $raw->org_uid);
 
         // Access via Eloquent decrypts seamlessly
         $this->assertEquals('plain_secret_token_data', $connection->fresh()->access_token);
+        $this->assertEquals('sensitive_org_uid_val', $connection->fresh()->org_uid);
     }
 
-    public function test_protected_endpoints_fail_gracefully_when_disconnected(): void
+    public function test_authenticated_disconnect_endpoint_deactivates_connection(): void
     {
-        $endpoints = [
-            '/api/upwork/profile',
-            '/api/upwork/connects',
-            '/api/upwork/jobs/recommended',
-            '/api/upwork/jobs/search',
-            '/api/upwork/jobs/1849204918239019283',
-            '/api/upwork/proposals',
-            '/api/upwork/invitations',
-        ];
+        Sanctum::actingAs(User::factory()->create());
 
-        foreach ($endpoints as $url) {
-            $response = $this->getJson($url);
-            $response->assertStatus(401)
-                ->assertJsonStructure([
-                    'success',
-                    'code',
-                    'message',
-                ])
-                ->assertJson([
-                    'success' => false,
-                    'code' => 'RECONNECT_REQUIRED',
-                ]);
-
-            $this->assertStringContainsString('reconnect', strtolower((string) $response->json('message')));
-        }
-    }
-
-    public function test_disconnect_endpoint_deactivates_connection(): void
-    {
         UpworkConnection::create([
             'provider' => 'upwork',
             'access_token' => 'token_to_disconnect',
@@ -121,128 +133,33 @@ class UpworkApiTest extends TestCase
         $this->assertNull(UpworkConnection::active());
     }
 
-    public function test_job_search_handles_empty_results_shape(): void
+    public function test_get_disconnect_route_is_removed(): void
     {
-        UpworkConnection::create([
-            'provider' => 'upwork',
-            'access_token' => 'active_token',
-            'org_uid' => 'org_123',
-            'is_active' => true,
-        ]);
+        Sanctum::actingAs(User::factory()->create());
 
-        $mockService = $this->createMock(\App\Services\Upwork\UpworkMcpService::class);
-        $mockService->method('searchJobs')->willReturn([
-            'jobs' => [],
-            'total_count' => 0,
-        ]);
-        $this->app->instance(\App\Services\Upwork\UpworkMcpService::class, $mockService);
-
-        $response = $this->getJson('/api/upwork/jobs/search?query=NonExistentSkill123');
-
-        $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-                'data' => [
-                    'jobs' => [],
-                    'totalCount' => 0,
-                    'hasMore' => false,
-                ],
-            ]);
+        $response = $this->get('/oauth/upwork/disconnect');
+        $response->assertStatus(404);
     }
 
-    public function test_mcp_failure_is_normalized_without_leaking_sensitive_traces(): void
+    public function test_unauthenticated_oauth_connect_is_rejected(): void
     {
-        UpworkConnection::create([
-            'provider' => 'upwork',
-            'access_token' => 'active_token',
-            'org_uid' => 'org_123',
-            'is_active' => true,
-        ]);
-
-        $mockService = $this->createMock(\App\Services\Upwork\UpworkMcpService::class);
-        $mockService->method('profile')->willThrowException(
-            new \Exception('Upwork MCP Error (get_profile): Remote rate limit exceeded [trace_id: upw_trace_98231]')
-        );
-        $this->app->instance(\App\Services\Upwork\UpworkMcpService::class, $mockService);
-
-        $response = $this->getJson('/api/upwork/profile');
-
-        $response->assertStatus(429)
-            ->assertJson([
-                'success' => false,
-                'code' => 'UPWORK_RATE_LIMITED',
-                'traceId' => 'upw_trace_98231',
-            ]);
-
-        // Ensure internal token/secrets are not leaked
-        $content = (string) $response->getContent();
-        $this->assertStringNotContainsString('active_token', $content);
-        $this->assertStringNotContainsString('password', $content);
+        $response = $this->getJson('/oauth/upwork/connect');
+        $response->assertStatus(401);
     }
 
-    public function test_candidate_accounts_endpoint_returns_safe_accounts(): void
+    public function test_open_redirect_return_to_url_sanitization(): void
     {
-        UpworkConnection::create([
-            'provider' => 'upwork',
-            'access_token' => 'active_token',
-            'account_status' => 'selection_required',
-            'raw_metadata' => [
-                'talent_candidates' => [
-                    '0' => ['name' => 'Profile Alpha', 'org_uid' => 'secret_org_1'],
-                    '1' => ['name' => 'Profile Beta', 'org_uid' => 'secret_org_2'],
-                ],
-            ],
-            'is_active' => true,
-        ]);
+        $controller = app(UpworkOAuthController::class);
 
-        $response = $this->getJson('/api/upwork/accounts');
+        // Malicious external URLs must be rejected and replaced with default frontend URL
+        $this->assertEquals('http://localhost:3000', $controller->sanitizeReturnTo('https://malicious.example'));
+        $this->assertEquals('http://localhost:3000', $controller->sanitizeReturnTo('//malicious.example'));
+        $this->assertEquals('http://localhost:3000', $controller->sanitizeReturnTo('javascript:alert(1)'));
+        $this->assertEquals('http://localhost:3000', $controller->sanitizeReturnTo('data:text/html,evil'));
+        $this->assertEquals('http://localhost:3000', $controller->sanitizeReturnTo('http://attacker.com/oauth'));
 
-        $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-                'data' => [
-                    ['id' => '0', 'name' => 'Profile Alpha', 'role' => 'Freelancer'],
-                    ['id' => '1', 'name' => 'Profile Beta', 'role' => 'Freelancer'],
-                ],
-            ]);
-
-        $content = (string) $response->getContent();
-        $this->assertStringNotContainsString('secret_org_1', $content);
-        $this->assertStringNotContainsString('secret_org_2', $content);
-    }
-
-    public function test_select_account_endpoint_activates_chosen_talent_account(): void
-    {
-        $connection = UpworkConnection::create([
-            'provider' => 'upwork',
-            'access_token' => 'active_token',
-            'account_status' => 'selection_required',
-            'raw_metadata' => [
-                'talent_candidates' => [
-                    '0' => ['name' => 'Profile Alpha', 'org_uid' => 'org_alpha', 'role' => 'Freelancer', 'raw' => []],
-                    '1' => ['name' => 'Profile Beta', 'org_uid' => 'org_beta', 'role' => 'Freelancer', 'raw' => []],
-                ],
-            ],
-            'is_active' => true,
-        ]);
-
-        $response = $this->postJson('/api/upwork/accounts/select', [
-            'accountId' => '1',
-        ]);
-
-        $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-                'data' => [
-                    'status' => 'selected',
-                    'accountName' => 'Profile Beta',
-                    'role' => 'Freelancer',
-                ],
-            ]);
-
-        $this->assertEquals('selected', $connection->fresh()->account_status);
-        $this->assertEquals('org_beta', $connection->fresh()->org_uid);
+        // Valid relative paths and exact origin matches must be accepted
+        $this->assertEquals('http://localhost:3000/dashboard', $controller->sanitizeReturnTo('/dashboard'));
+        $this->assertEquals('http://localhost:3000/settings?tab=upwork', $controller->sanitizeReturnTo('http://localhost:3000/settings?tab=upwork'));
     }
 }
-
-

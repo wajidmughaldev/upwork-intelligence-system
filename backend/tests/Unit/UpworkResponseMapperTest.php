@@ -187,4 +187,56 @@ class UpworkResponseMapperTest extends TestCase
         $this->assertNull($mappedDetail['client']['location']);
         $this->assertSame([], $mappedDetail['screeningQuestions']);
     }
+
+    public function test_numeric_job_id_never_appears_in_dto_reference_and_safe_ciphertext_is_returned(): void
+    {
+        // Numeric-only ID must result in null reference
+        $numericJob = ['jobs' => [['id' => '1849204918239019283', 'title' => 'Laravel Job']]];
+        $mappedNumeric = UpworkResponseMapper::mapJobSearchResults($numericJob);
+        $this->assertNull($mappedNumeric['jobs'][0]['reference']);
+
+        // Safe ciphertext starting with ~02 must be returned
+        $ciphertextJob = ['jobs' => [['id' => '1849204918239019283', 'ciphertext' => '~02189a7f34c2b98e71', 'title' => 'Laravel Job']]];
+        $mappedCiphertext = UpworkResponseMapper::mapJobSearchResults($ciphertextJob);
+        $this->assertEquals('~02189a7f34c2b98e71', $mappedCiphertext['jobs'][0]['reference']);
+    }
+
+    public function test_proposal_and_invitation_internal_ids_are_absent_from_public_dto(): void
+    {
+        $rawProposals = [
+            'proposals' => [
+                [
+                    'id' => 'prop_99999_internal',
+                    'proposal_id' => '99999',
+                    'title' => 'Senior Developer Role',
+                    'client_name' => 'BigCorp',
+                    'status' => 'Submitted',
+                ],
+            ],
+        ];
+
+        $mappedProposals = UpworkResponseMapper::mapProposals($rawProposals);
+        $this->assertArrayNotHasKey('reference', $mappedProposals[0]);
+        $this->assertArrayNotHasKey('id', $mappedProposals[0]);
+        $this->assertArrayNotHasKey('proposal_id', $mappedProposals[0]);
+        $this->assertStringNotContainsString('prop_99999_internal', json_encode($mappedProposals));
+
+        $rawInvitations = [
+            'invitations' => [
+                [
+                    'id' => 'inv_88888_internal',
+                    'invitation_id' => '88888',
+                    'title' => 'Specialist Invite',
+                    'client_name' => 'FastClient',
+                    'status' => 'Pending',
+                ],
+            ],
+        ];
+
+        $mappedInvitations = UpworkResponseMapper::mapInvitations($rawInvitations);
+        $this->assertArrayNotHasKey('invitationReference', $mappedInvitations[0]);
+        $this->assertArrayNotHasKey('id', $mappedInvitations[0]);
+        $this->assertArrayNotHasKey('invitation_id', $mappedInvitations[0]);
+        $this->assertStringNotContainsString('inv_88888_internal', json_encode($mappedInvitations));
+    }
 }

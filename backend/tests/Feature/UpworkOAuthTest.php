@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\UpworkConnection;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class UpworkOAuthTest extends TestCase
@@ -37,7 +39,7 @@ class UpworkOAuthTest extends TestCase
         $this->assertContains(url('mcp/oauth/upwork/callback'), $response->json('redirect_uris'));
     }
 
-    public function test_disconnect_clears_stored_tokens_and_deactivates(): void
+    public function test_disconnect_requires_authentication_and_deactivates_connection(): void
     {
         UpworkConnection::create([
             'provider' => 'upwork',
@@ -50,10 +52,29 @@ class UpworkOAuthTest extends TestCase
 
         $this->assertNotNull(UpworkConnection::active());
 
-        $response = $this->get('/oauth/upwork/disconnect');
+        // Unauthenticated POST fails with 401
+        $responseUnauth = $this->postJson('/api/upwork/disconnect');
+        $responseUnauth->assertStatus(401);
 
-        $response->assertRedirect('http://localhost:3000?upwork_disconnected=1');
+        // Authenticated POST succeeds
+        Sanctum::actingAs(User::factory()->create());
+        $responseAuth = $this->postJson('/api/upwork/disconnect');
+        $responseAuth->assertStatus(200)
+            ->assertJson(['connected' => false]);
 
         $this->assertNull(UpworkConnection::active());
+    }
+
+    public function test_oauth_connect_requires_authenticated_user(): void
+    {
+        $responseUnauth = $this->getJson('/oauth/upwork/connect');
+        $responseUnauth->assertStatus(401);
+
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $responseAuth = $this->get('/oauth/upwork/connect');
+        // Authenticated connect redirects to OAuth provider
+        $this->assertTrue($responseAuth->isRedirect());
     }
 }

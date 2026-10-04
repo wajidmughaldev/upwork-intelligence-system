@@ -12,9 +12,10 @@ Route::get('/', function () {
     ]);
 });
 
-// Register official Laravel MCP OAuth routes for Upwork
+// Register official Laravel MCP OAuth routes for Upwork callback and client metadata
 Mcp::oAuthRoutesFor('upwork', [UpworkOAuthController::class, 'handleCallback']);
 
-// Convenience OAuth initiate and disconnect routes
-Route::get('/oauth/upwork/connect', [UpworkOAuthController::class, 'connect'])->name('upwork.oauth.connect');
-Route::get('/oauth/upwork/disconnect', [UpworkOAuthController::class, 'disconnect'])->name('upwork.oauth.disconnect');
+// Authenticated application OAuth connect initiation route
+Route::get('/oauth/upwork/connect', [UpworkOAuthController::class, 'connect'])
+    ->middleware('auth:sanctum')
+    ->name('upwork.oauth.connect');
