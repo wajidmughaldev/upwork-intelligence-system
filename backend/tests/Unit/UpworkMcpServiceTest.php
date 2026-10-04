@@ -49,6 +49,24 @@ class UpworkMcpServiceTest extends TestCase
         $this->assertEquals('Freelancer', $status['role']);
     }
 
+    public function test_missing_account_metadata_remains_null(): void
+    {
+        UpworkConnection::create([
+            'provider' => 'upwork',
+            'access_token' => 'active_oauth_token',
+            'account_name' => null,
+            'account_role' => null,
+            'account_status' => 'selected',
+            'is_active' => true,
+        ]);
+
+        $status = $this->service->connectionStatus();
+
+        $this->assertTrue($status['connected']);
+        $this->assertNull($status['accountName']);
+        $this->assertNull($status['role']);
+    }
+
     public function test_pending_account_sync_is_not_reported_as_connected(): void
     {
         UpworkConnection::create([

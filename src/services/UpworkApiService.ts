@@ -1,32 +1,11 @@
+import { apiFetch } from './apiClient';
+
 export interface UpworkConnectionStatus {
   connected: boolean;
   accountName: string | null;
   role: string | null;
-  status?: 'pending' | 'selection_required' | 'no_eligible_account' | 'reconnect_required' | string;
-}
-
-export interface UpworkConnectsData {
-  available: number | null;
-  membershipType: string | null;
-}
-
-export interface UpworkConnectsResponse {
-  success: boolean;
-  data?: UpworkConnectsData;
-  code?: string;
-  message?: string;
-}
-
-export interface UpworkPortfolioHighlight {
-  title: string | null;
-  description: string | null;
-  url: string | null;
-  completionDate: string | null;
-}
-
-export interface UpworkProfileSignals {
-  jobSuccessScore: number | null;
-  topRated: boolean | null;
+  status: 'connected' | 'selection_required' | 'no_eligible_account' | 'pending' | 'reconnect_required' | 'disconnected';
+  unauthenticated?: boolean;
 }
 
 export interface UpworkProfileData {
@@ -34,167 +13,140 @@ export interface UpworkProfileData {
   overview: string | null;
   hourlyRate: string | null;
   skills: string[];
-  portfolioHighlights: UpworkPortfolioHighlight[];
-  connectsBalance: number | null;
-  profileSignals: UpworkProfileSignals;
+  portfolioHighlights: Array<{
+    id: string;
+    title: string;
+    description: string;
+    outcome?: string;
+  }>;
+  profileSignals: {
+    jobSuccessScore: number | null;
+    topRated: boolean | null;
+    connectsBalance: number | null;
+  };
 }
 
-export interface UpworkProfileResponse {
+export interface UpworkConnectsData {
+  available: number | null;
+  membershipType: string | null;
+}
+
+export interface ApiResponse<T> {
   success: boolean;
-  data?: UpworkProfileData;
+  data?: T;
   code?: string;
   message?: string;
+  unauthenticated?: boolean;
 }
 
-export interface UpworkDisconnectResponse {
-  success: boolean;
-  message: string;
-}
+export class UpworkApiService {
+  async getStatus(): Promise<UpworkConnectionStatus & { unauthenticated?: boolean }> {
+    const res = await apiFetch<UpworkConnectionStatus>('/api/upwork/status', {
+      method: 'GET',
+      requireCsrf: false,
+    });
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-class UpworkApiService {
-  private baseUrl = API_BASE_URL;
-
-  private async getCsrfCookie(): Promise<void> {
-    try {
-      await fetch(`${this.baseUrl}/sanctum/csrf-cookie`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-    } catch {
-      // Ignore network errors on csrf pre-fetch
-    }
-  }
-
-  getOAuthConnectUrl(returnTo: string = typeof window !== 'undefined' ? window.location.origin : ''): string {
-    const encodedReturn = encodeURIComponent(returnTo);
-    return `${this.baseUrl}/oauth/upwork/connect?return_to=${encodedReturn}`;
-  }
-
-  async getStatus(): Promise<UpworkConnectionStatus> {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/upwork/status`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        return {
-          connected: false,
-          accountName: null,
-          role: null,
-          status: response.status === 401 ? 'unauthenticated' : 'error',
-        };
-      }
-
-      const data: UpworkConnectionStatus = await response.json();
-      return data;
-    } catch {
+    if (res.status === 401) {
       return {
         connected: false,
         accountName: null,
         role: null,
-        status: 'error',
+        status: 'disconnected',
+        unauthenticated: true,
       };
     }
+
+    if (res.ok && res.data) {
+      return res.data;
+    }
+
+    return {
+      connected: false,
+      accountName: null,
+      role: null,
+      status: 'disconnected',
+    };
   }
 
-  async getConnects(): Promise<UpworkConnectsResponse> {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/upwork/connects`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-      });
+  async getProfile(): Promise<ApiResponse<UpworkProfileData>> {
+    const res = await apiFetch<ApiResponse<UpworkProfileData>>('/api/upwork/profile', {
+      method: 'GET',
+      requireCsrf: false,
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        return {
-          success: false,
-          code: errorData.code || 'HTTP_ERROR',
-          message: errorData.message || 'Failed to fetch Upwork connects balance.',
-        };
-      }
-
-      const data: UpworkConnectsResponse = await response.json();
-      return data;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Network error while fetching connects balance.';
+    if (res.status === 401) {
       return {
         success: false,
-        code: 'NETWORK_ERROR',
-        message,
+        message: 'Unauthenticated session.',
+        unauthenticated: true,
       };
     }
+
+    if (res.ok && res.data?.success) {
+      return res.data;
+    }
+
+    return {
+      success: false,
+      message: res.data?.message || res.error || 'Failed to fetch profile.',
+    };
   }
 
-  async getProfile(): Promise<UpworkProfileResponse> {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/upwork/profile`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-      });
+  async getConnects(): Promise<ApiResponse<UpworkConnectsData>> {
+    const res = await apiFetch<ApiResponse<UpworkConnectsData>>('/api/upwork/connects', {
+      method: 'GET',
+      requireCsrf: false,
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        return {
-          success: false,
-          code: errorData.code || 'HTTP_ERROR',
-          message: errorData.message || 'Failed to fetch Upwork profile data.',
-        };
-      }
-
-      const data: UpworkProfileResponse = await response.json();
-      return data;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Network error while fetching profile data.';
+    if (res.status === 401) {
       return {
         success: false,
-        code: 'NETWORK_ERROR',
-        message,
+        message: 'Unauthenticated session.',
+        unauthenticated: true,
       };
     }
+
+    if (res.ok && res.data?.success) {
+      return res.data;
+    }
+
+    return {
+      success: false,
+      message: res.data?.message || res.error || 'Failed to fetch connects.',
+    };
   }
 
-  async disconnect(): Promise<UpworkDisconnectResponse> {
-    await this.getCsrfCookie();
+  async disconnect(): Promise<{ success: boolean; connected?: boolean; message?: string; unauthenticated?: boolean }> {
+    const res = await apiFetch<{ success: boolean; connected: boolean; message?: string }>('/api/upwork/disconnect', {
+      method: 'POST',
+    });
 
-    try {
-      const response = await fetch(`${this.baseUrl}/api/upwork/disconnect`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        return {
-          success: false,
-          message: errorData.message || 'Failed to disconnect Upwork account.',
-        };
-      }
-
-      const data: UpworkDisconnectResponse = await response.json();
-      return data;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Network error during disconnect.';
+    if (res.status === 401) {
       return {
         success: false,
-        message,
+        message: 'Unauthenticated session.',
+        unauthenticated: true,
       };
     }
+
+    if (res.ok && res.data?.success === true) {
+      return {
+        success: true,
+        connected: false,
+        message: res.data.message || 'Upwork account disconnected successfully.',
+      };
+    }
+
+    return {
+      success: false,
+      message: res.data?.message || res.error || 'Failed to disconnect Upwork account.',
+    };
+  }
+
+  getOAuthConnectUrl(): string {
+    if (typeof window === 'undefined') return '/oauth/upwork/connect';
+    const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
+    return `/oauth/upwork/connect?return_to=${returnTo}`;
   }
 }
 

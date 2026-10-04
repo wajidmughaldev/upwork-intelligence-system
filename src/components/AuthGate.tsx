@@ -25,8 +25,12 @@ export function AuthGate({ onLoginSuccess }: AuthGateProps) {
     setError(null);
 
     try {
-      const user = await authApiService.login(email, password);
-      onLoginSuccess(user);
+      const res = await authApiService.login(email, password);
+      if (res.success && res.user) {
+        onLoginSuccess(res.user);
+      } else {
+        setError(res.error || 'Invalid credentials or request failed.');
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Login failed. Please check credentials.';
       setError(message);

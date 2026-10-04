@@ -116,26 +116,41 @@ class UpworkOAuthController extends Controller
      */
     public function disconnect(Request $request): mixed
     {
-        $connection = UpworkConnection::active();
-        if ($connection) {
-            $connection->update([
-                'is_active' => false,
-                'access_token' => '',
-                'refresh_token' => null,
-            ]);
+        try {
+            $connection = UpworkConnection::active();
+            if ($connection) {
+                $connection->update([
+                    'is_active' => false,
+                    'access_token' => '',
+                    'refresh_token' => null,
+                ]);
+            }
+
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'success' => true,
+                    'connected' => false,
+                    'message' => 'Upwork account disconnected successfully.',
+                ]);
+            }
+
+            $safeReturnTo = $this->sanitizeReturnTo($request->query('return_to'));
+            $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
+
+            return redirect($safeReturnTo . $separator . 'upwork_disconnected=1');
+        } catch (Exception $e) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to disconnect Upwork account.',
+                ], 500);
+            }
+
+            $safeReturnTo = $this->sanitizeReturnTo($request->query('return_to'));
+            $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
+
+            return redirect($safeReturnTo . $separator . 'upwork_error=disconnect_failed');
         }
-
-        if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json([
-                'connected' => false,
-                'message' => 'Upwork account disconnected successfully.',
-            ]);
-        }
-
-        $safeReturnTo = $this->sanitizeReturnTo($request->query('return_to'));
-        $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
-
-        return redirect($safeReturnTo . $separator . 'upwork_disconnected=1');
     }
 
     /**

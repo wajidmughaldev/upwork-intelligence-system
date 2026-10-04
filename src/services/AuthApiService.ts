@@ -1,3 +1,5 @@
+import { apiFetch } from './apiClient';
+
 export interface AuthUser {
   id: number;
   name: string;
@@ -5,92 +7,62 @@ export interface AuthUser {
 }
 
 export interface AuthResponse {
-  user: AuthUser;
+  success: boolean;
+  user?: AuthUser;
+  error?: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-class AuthApiService {
-  private baseUrl = API_BASE_URL;
-
-  private async getCsrfCookie(): Promise<void> {
-    try {
-      await fetch(`${this.baseUrl}/sanctum/csrf-cookie`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-    } catch {
-      // Ignore network errors on csrf pre-fetch; actual login request will handle failure if needed
-    }
-  }
-
-  async login(email: string, password: string): Promise<AuthUser> {
-    await this.getCsrfCookie();
-
-    const response = await fetch(`${this.baseUrl}/api/auth/login`, {
+export class AuthApiService {
+  async login(email: string, password: string): Promise<AuthResponse> {
+    const res = await apiFetch<{ success: boolean; user?: AuthUser; message?: string }>('/api/auth/login', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      credentials: 'include',
       body: JSON.stringify({ email, password }),
     });
 
-    if (!response.ok) {
-      let errorMsg = 'Invalid email or password credentials.';
-      try {
-        const errorData = await response.json();
-        if (errorData.errors?.email?.[0]) {
-          errorMsg = errorData.errors.email[0];
-        } else if (errorData.message) {
-          errorMsg = errorData.message;
-        }
-      } catch {
-        // Fallback error message
-      }
-      throw new Error(errorMsg);
+    if (res.ok && res.data?.success && res.data.user) {
+      return {
+        success: true,
+        user: res.data.user,
+      };
     }
 
-    const data: AuthResponse = await response.json();
-    return data.user;
+    return {
+      success: false,
+      error: res.data?.message || res.error || 'Invalid credentials or request error.',
+    };
   }
 
   async getCurrentUser(): Promise<AuthUser | null> {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/auth/me`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-      });
+    const res = await apiFetch<{ user?: AuthUser }>('/api/auth/me', {
+      method: 'GET',
+      requireCsrf: false,
+    });
 
-      if (!response.ok) {
-        return null;
-      }
-
-      const data: AuthResponse = await response.json();
-      return data.user;
-    } catch {
-      return null;
+    if (res.ok && res.data?.user) {
+      return res.data.user;
     }
+
+    return null;
   }
 
-  async logout(): Promise<void> {
-    await this.getCsrfCookie();
+  async logout(): Promise<AuthResponse> {
+    const res = await apiFetch<AuthResponse>('/api/auth/logout', {
+      method: 'POST',
+    });
 
-    try {
-      await fetch(`${this.baseUrl}/api/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-      });
-    } catch {
-      // Session local clear proceeds regardless
+    if (res.ok) {
+      return { success: true };
     }
+
+    // 401 means session is already expired/unauthenticated -> effectively logged out
+    if (res.status === 401) {
+      return { success: true };
+    }
+
+    return {
+      success: false,
+      error: 'Sign out failed due to network or server error. Please try again.',
+    };
   }
 }
 

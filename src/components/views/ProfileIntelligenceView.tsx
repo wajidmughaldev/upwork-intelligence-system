@@ -181,9 +181,16 @@ export const ProfileIntelligenceView: React.FC<ProfileIntelligenceViewProps> = (
                 {/* Title & Hourly Rate Header */}
                 <div>
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-sm font-bold text-slate-900 leading-snug">
-                      {realProfile?.title || connectionStatus?.accountName || '—'}
-                    </h3>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 leading-snug">
+                        {realProfile?.title ?? '—'}
+                      </h3>
+                      {connectionStatus?.accountName && (
+                        <p className="text-[11px] font-medium text-slate-500 mt-0.5">
+                          {connectionStatus.accountName}
+                        </p>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap">
                       <span>{realProfile?.hourlyRate ? `$${realProfile.hourlyRate} / hr` : '—'}</span>
                     </div>

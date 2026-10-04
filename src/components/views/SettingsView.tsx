@@ -45,16 +45,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [autoRejectFlagged, setAutoRejectFlagged] = useState(true);
 
   // Status feedback
-  const [pingStatus, setPingStatus] = useState<string | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
-
-  const handleTestPing = () => {
-    setPingStatus('Pinging Upwork MCP gateway...');
-    setTimeout(() => {
-      setPingStatus('Pong! 42ms round-trip latency verified. Rate limit healthy.');
-      setTimeout(() => setPingStatus(null), 3000);
-    }, 600);
-  };
 
   const handleSave = () => {
     onUpdateProfile({
@@ -144,7 +135,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 }`}></span>
               </span>
               <span className="text-xs font-semibold">
-                {isConnected ? 'MCP Active & Listening' : 'MCP Offline'}
+                {isConnected ? 'MCP Connected' : 'MCP Offline'}
               </span>
             </div>
           </div>
@@ -171,7 +162,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </span>
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1.5 flex flex-wrap items-center gap-y-1 gap-x-2">
-                  <span>Role: <span className="font-medium text-slate-700">{connectionStatus?.role || 'Freelancer'}</span></span>
+                  <span>Role: <span className="font-medium text-slate-700">{connectionStatus?.role || '—'}</span></span>
                   <span className="text-slate-300">•</span>
                   <span>Status: <span className="font-medium text-slate-700">{connectionStatus?.status || (connectionStatus?.connected ? 'connected' : 'disconnected')}</span></span>
                 </div>
@@ -204,12 +195,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </button>
             </div>
           </div>
-
-          {pingStatus && (
-            <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900 font-medium">
-              {pingStatus}
-            </div>
-          )}
         </div>
       </div>
 

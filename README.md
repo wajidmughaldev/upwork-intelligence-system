@@ -34,3 +34,28 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Local Development & User Setup
+
+Application authentication uses Laravel session-based Sanctum authentication (`/api/auth/login`). There is intentionally no public registration endpoint.
+
+To create an authorized user for local development:
+
+1. Launch Laravel Tinker in the backend environment:
+   ```bash
+   cd backend
+   php artisan tinker
+   ```
+
+2. Provision an authorized local user with a password chosen locally:
+   ```php
+   User::create([
+       'name' => 'Local Developer',
+       'email' => 'dev@example.com',
+       'password' => Hash::make('your-chosen-local-password'),
+   ]);
+   ```
+
+3. Authenticate via the application Auth Gate UI using your local email and password.
+
+*Security Note: Never commit plain-text passwords or production credentials into repository files or documentation.*

@@ -42,41 +42,60 @@ export default function Home() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile>(upworkService.getUserProfile());
 
-  // Real Upwork API State
+  // Real Upwork API State & Refresh Status
+  const [refreshState, setRefreshState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [connectionStatus, setConnectionStatus] = useState<UpworkConnectionStatus | null>(null);
   const [connectsData, setConnectsData] = useState<UpworkConnectsData | null>(null);
   const [realProfileData, setRealProfileData] = useState<UpworkProfileData | null>(null);
-  const [syncNotice, setSyncNotice] = useState<string | null>(null);
+  const [syncNotice, setSyncNotice] = useState<{ message: string; type: 'info' | 'error' } | null>(null);
 
   // Derived values for this slice
   const isConnected = connectionStatus?.connected ?? false;
-  const availableConnects = connectsData?.available ?? realProfileData?.connectsBalance ?? null;
+  const availableConnects = connectsData?.available ?? realProfileData?.profileSignals?.connectsBalance ?? null;
   const accountName = connectionStatus?.accountName ?? null;
 
   // Real Upwork Data Fetcher
   const fetchRealUpworkData = useCallback(async () => {
+    setRefreshState('loading');
     try {
-      const [statusRes, connectsRes, profileRes] = await Promise.all([
-        upworkApiService.getStatus(),
+      const statusRes = await upworkApiService.getStatus();
+
+      if (statusRes.unauthenticated) {
+        setAuthUser(null);
+        setAuthStatus('unauthenticated');
+        setRefreshState('error');
+        return;
+      }
+
+      setConnectionStatus(statusRes);
+
+      const [connectsRes, profileRes] = await Promise.all([
         upworkApiService.getConnects(),
         upworkApiService.getProfile(),
       ]);
 
-      setConnectionStatus(statusRes);
+      if (connectsRes.unauthenticated || profileRes.unauthenticated) {
+        setAuthUser(null);
+        setAuthStatus('unauthenticated');
+        setRefreshState('error');
+        return;
+      }
 
       if (connectsRes.success && connectsRes.data) {
         setConnectsData(connectsRes.data);
-      } else {
-        setConnectsData(null);
       }
 
       if (profileRes.success && profileRes.data) {
         setRealProfileData(profileRes.data);
-      } else {
-        setRealProfileData(null);
       }
+
+      setRefreshState('success');
     } catch {
-      // Keep state safe
+      setRefreshState('error');
+      setSyncNotice({
+        message: 'Unable to refresh Upwork account data. Please try again.',
+        type: 'error',
+      });
     }
   }, []);
 
@@ -114,12 +133,15 @@ export default function Home() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('upwork_connected') === '1') {
-        setSyncNotice('Successfully connected to Upwork!');
+        setSyncNotice({ message: 'Successfully connected to Upwork!', type: 'info' });
         setTimeout(() => setSyncNotice(null), 4000);
         window.history.replaceState({}, document.title, window.location.pathname);
         fetchRealUpworkData();
       } else if (params.get('upwork_account_selection') === '1') {
-        setSyncNotice('Upwork account selection is required. Please select your candidate account.');
+        setSyncNotice({
+          message: 'Upwork account selection is required. Please select your candidate account.',
+          type: 'info',
+        });
         setTimeout(() => setSyncNotice(null), 6000);
         window.history.replaceState({}, document.title, window.location.pathname);
         fetchRealUpworkData();
@@ -134,15 +156,22 @@ export default function Home() {
   };
 
   const handleLogout = async () => {
-    await authApiService.logout();
-    setAuthUser(null);
-    setAuthStatus('unauthenticated');
+    const res = await authApiService.logout();
+    if (res.success) {
+      setAuthUser(null);
+      setAuthStatus('unauthenticated');
+    } else {
+      setSyncNotice({
+        message: res.error || 'Sign out failed. Please try again.',
+        type: 'error',
+      });
+    }
   };
 
   // Upwork Connection Handlers
   const handleSyncUpwork = async () => {
     await fetchRealUpworkData();
-    setSyncNotice('Upwork account and profile refreshed.');
+    setSyncNotice({ message: 'Upwork account and profile refreshed.', type: 'info' });
     setTimeout(() => setSyncNotice(null), 3000);
   };
 
@@ -153,17 +182,30 @@ export default function Home() {
   };
 
   const handleDisconnectUpwork = async () => {
-    await upworkApiService.disconnect();
-    setConnectionStatus({
-      connected: false,
-      accountName: null,
-      role: null,
-      status: 'disconnected',
-    });
-    setConnectsData(null);
-    setRealProfileData(null);
-    setSyncNotice('Upwork account disconnected.');
-    setTimeout(() => setSyncNotice(null), 3000);
+    const res = await upworkApiService.disconnect();
+    if (res.unauthenticated) {
+      setAuthUser(null);
+      setAuthStatus('unauthenticated');
+      return;
+    }
+
+    if (res.success) {
+      setConnectionStatus({
+        connected: false,
+        accountName: null,
+        role: null,
+        status: 'disconnected',
+      });
+      setConnectsData(null);
+      setRealProfileData(null);
+      setSyncNotice({ message: 'Upwork account disconnected.', type: 'info' });
+      setTimeout(() => setSyncNotice(null), 3000);
+    } else {
+      setSyncNotice({
+        message: res.message || 'Failed to disconnect Upwork account. Please try again.',
+        type: 'error',
+      });
+    }
   };
 
   // Navigation handlers
@@ -347,9 +389,15 @@ export default function Home() {
 
         {/* Sync / Action Banner Toast */}
         {syncNotice && (
-          <div className="bg-slate-900 text-white text-xs px-8 py-2 flex items-center justify-between shadow-xs">
-            <span>{syncNotice}</span>
-            <button onClick={() => setSyncNotice(null)} className="text-slate-400 hover:text-white">✕</button>
+          <div
+            className={`text-xs px-8 py-2 flex items-center justify-between shadow-xs ${
+              syncNotice.type === 'error' ? 'bg-rose-900 text-rose-100' : 'bg-slate-900 text-white'
+            }`}
+          >
+            <span>{syncNotice.message}</span>
+            <button onClick={() => setSyncNotice(null)} className="text-slate-400 hover:text-white cursor-pointer">
+              ✕
+            </button>
           </div>
         )}
 
