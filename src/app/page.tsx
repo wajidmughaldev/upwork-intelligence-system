@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+export const dynamic = 'force-dynamic';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { AppSidebar, NavItem } from '../components/AppSidebar';
 import { AppHeader } from '../components/AppHeader';
+import { AuthGate } from '../components/AuthGate';
 import { DashboardView } from '../components/views/DashboardView';
 import { JobSearchView } from '../components/views/JobSearchView';
 import { JobAnalysisView } from '../components/views/JobAnalysisView';
@@ -14,35 +17,154 @@ import { SettingsView } from '../components/views/SettingsView';
 
 import { upworkService } from '../services/MockUpworkService';
 import { aiService } from '../services/MockAIService';
+import { AuthUser, authApiService } from '../services/AuthApiService';
+import {
+  upworkApiService,
+  UpworkConnectionStatus,
+  UpworkConnectsData,
+  UpworkProfileData,
+} from '../services/UpworkApiService';
 import { Job, Application, UserProfile, ApplicationStatus, SubmissionResultState, SubmissionResultData } from '../types';
+import { Loader2 } from 'lucide-react';
 
 export default function Home() {
+  // Auth state
+  const [authStatus, setAuthStatus] = useState<'checking' | 'authenticated' | 'unauthenticated'>('checking');
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+
+  // App & Navigation State
   const [currentTab, setCurrentTab] = useState<NavItem>('dashboard');
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [proposalText, setProposalText] = useState<string>('');
   const [proposalTone, setProposalTone] = useState<string>('Direct');
   const [proposalLength, setProposalLength] = useState<string>('Balanced');
-  const [availableConnects, setAvailableConnects] = useState<number>(147);
-  const [isConnected, setIsConnected] = useState<boolean>(true);
   const [applications, setApplications] = useState<Application[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile>(upworkService.getUserProfile());
 
-  // Hydrate state from mock service (backed by localStorage)
+  // Real Upwork API State
+  const [connectionStatus, setConnectionStatus] = useState<UpworkConnectionStatus | null>(null);
+  const [connectsData, setConnectsData] = useState<UpworkConnectsData | null>(null);
+  const [realProfileData, setRealProfileData] = useState<UpworkProfileData | null>(null);
+  const [syncNotice, setSyncNotice] = useState<string | null>(null);
+
+  // Derived values for this slice
+  const isConnected = connectionStatus?.connected ?? false;
+  const availableConnects = connectsData?.available ?? realProfileData?.connectsBalance ?? null;
+  const accountName = connectionStatus?.accountName ?? null;
+
+  // Real Upwork Data Fetcher
+  const fetchRealUpworkData = useCallback(async () => {
+    try {
+      const [statusRes, connectsRes, profileRes] = await Promise.all([
+        upworkApiService.getStatus(),
+        upworkApiService.getConnects(),
+        upworkApiService.getProfile(),
+      ]);
+
+      setConnectionStatus(statusRes);
+
+      if (connectsRes.success && connectsRes.data) {
+        setConnectsData(connectsRes.data);
+      } else {
+        setConnectsData(null);
+      }
+
+      if (profileRes.success && profileRes.data) {
+        setRealProfileData(profileRes.data);
+      } else {
+        setRealProfileData(null);
+      }
+    } catch {
+      // Keep state safe
+    }
+  }, []);
+
+  // 1. Initial Session Auth Check
   useEffect(() => {
+    const checkAuthSession = async () => {
+      const user = await authApiService.getCurrentUser();
+      if (user) {
+        setAuthUser(user);
+        setAuthStatus('authenticated');
+      } else {
+        setAuthStatus('unauthenticated');
+      }
+    };
+
+    checkAuthSession();
+  }, []);
+
+  // 2. Hydrate mock jobs & local preferences + fetch real Upwork data when authenticated
+  useEffect(() => {
+    if (authStatus !== 'authenticated') return;
+
     const loadedJobs = upworkService.getJobs();
     setJobs(loadedJobs);
-    setAvailableConnects(upworkService.getAvailableConnects());
-    setIsConnected(upworkService.isConnected());
     setApplications(upworkService.getApplications());
-    const profile = upworkService.getUserProfile();
-    setUserProfile(profile);
+    setUserProfile(upworkService.getUserProfile());
 
-    // Default select first top job for analysis/proposal if not set
     if (loadedJobs.length > 0 && !selectedJob) {
       setSelectedJob(loadedJobs[0]);
     }
-  }, []);
+
+    fetchRealUpworkData();
+
+    // Check OAuth return params in URL
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('upwork_connected') === '1') {
+        setSyncNotice('Successfully connected to Upwork!');
+        setTimeout(() => setSyncNotice(null), 4000);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        fetchRealUpworkData();
+      } else if (params.get('upwork_account_selection') === '1') {
+        setSyncNotice('Upwork account selection is required. Please select your candidate account.');
+        setTimeout(() => setSyncNotice(null), 6000);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        fetchRealUpworkData();
+      }
+    }
+  }, [authStatus, fetchRealUpworkData]);
+
+  // Auth Handlers
+  const handleLoginSuccess = (user: AuthUser) => {
+    setAuthUser(user);
+    setAuthStatus('authenticated');
+  };
+
+  const handleLogout = async () => {
+    await authApiService.logout();
+    setAuthUser(null);
+    setAuthStatus('unauthenticated');
+  };
+
+  // Upwork Connection Handlers
+  const handleSyncUpwork = async () => {
+    await fetchRealUpworkData();
+    setSyncNotice('Upwork account and profile refreshed.');
+    setTimeout(() => setSyncNotice(null), 3000);
+  };
+
+  const handleConnectOAuth = () => {
+    if (typeof window !== 'undefined') {
+      window.location.href = upworkApiService.getOAuthConnectUrl();
+    }
+  };
+
+  const handleDisconnectUpwork = async () => {
+    await upworkApiService.disconnect();
+    setConnectionStatus({
+      connected: false,
+      accountName: null,
+      role: null,
+      status: 'disconnected',
+    });
+    setConnectsData(null);
+    setRealProfileData(null);
+    setSyncNotice('Upwork account disconnected.');
+    setTimeout(() => setSyncNotice(null), 3000);
+  };
 
   // Navigation handlers
   const handleSelectTab = (tab: NavItem) => {
@@ -124,8 +246,8 @@ export default function Home() {
         jobTitle: 'Unknown Job',
         bid: bidAmount,
         connectsCost: connectsUsed,
-        availableConnects,
-        remainingConnects: availableConnects,
+        availableConnects: availableConnects ?? 0,
+        remainingConnects: availableConnects ?? 0,
         errorReason: 'No job was selected for submission.',
       };
     }
@@ -158,7 +280,7 @@ export default function Home() {
 
     if (result.state === 'success') {
       setApplications([...upworkService.getApplications()]);
-      setAvailableConnects(upworkService.getAvailableConnects());
+      fetchRealUpworkData();
     }
 
     return result;
@@ -169,6 +291,23 @@ export default function Home() {
     setApplications([...upworkService.getApplications()]);
   };
 
+  // Render checking session state
+  if (authStatus === 'checking') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="flex items-center gap-3 bg-white border border-slate-200 px-5 py-3 rounded-2xl shadow-xs text-xs font-medium text-slate-700">
+          <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+          <span>Verifying engine session...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Auth Gate if unauthenticated
+  if (authStatus === 'unauthenticated') {
+    return <AuthGate onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
       {/* 1:1 Stitch Fixed Sidebar */}
@@ -177,11 +316,11 @@ export default function Home() {
         onSelectTab={handleSelectTab}
         applicationsCount={applications.length}
         jobsCount={jobs.length}
-        onSync={() => {
-          setJobs([...upworkService.getJobs()]);
-          setAvailableConnects(upworkService.getAvailableConnects());
-          alert('Upwork live sync completed: refreshed feeds and account telemetry.');
-        }}
+        accountName={accountName}
+        profileTitle={realProfileData?.title}
+        hourlyRate={realProfileData?.hourlyRate}
+        isConnected={isConnected}
+        onSync={handleSyncUpwork}
       />
 
       {/* Main Wrapper offset by sidebar w-64 */}
@@ -191,7 +330,10 @@ export default function Home() {
           currentTab={currentTab}
           availableConnects={availableConnects}
           isConnected={isConnected}
-          onRefreshConnects={() => setAvailableConnects(upworkService.getAvailableConnects())}
+          accountName={accountName}
+          userEmail={authUser?.email}
+          onRefreshConnects={handleSyncUpwork}
+          onLogout={handleLogout}
           onQuickMatch={() => {
             const bestJob = [...jobs].sort((a, b) => b.opportunityScore - a.opportunityScore)[0];
             if (bestJob) {
@@ -203,11 +345,21 @@ export default function Home() {
           onOpenSettings={() => setCurrentTab('settings')}
         />
 
+        {/* Sync / Action Banner Toast */}
+        {syncNotice && (
+          <div className="bg-slate-900 text-white text-xs px-8 py-2 flex items-center justify-between shadow-xs">
+            <span>{syncNotice}</span>
+            <button onClick={() => setSyncNotice(null)} className="text-slate-400 hover:text-white">✕</button>
+          </div>
+        )}
+
         {/* View Canvas */}
         <main className="flex-1">
           {currentTab === 'dashboard' && (
             <DashboardView
               availableConnects={availableConnects}
+              connectionStatus={connectionStatus}
+              connectsData={connectsData}
               jobs={jobs}
               applicationsCount={applications.length}
               onViewAnalysis={handleViewAnalysis}
@@ -256,7 +408,7 @@ export default function Home() {
             <ReviewSubmitView
               job={selectedJob}
               proposalText={proposalText}
-              availableConnects={availableConnects}
+              availableConnects={availableConnects ?? 0}
               onBackToEdit={() => setCurrentTab('proposal')}
               onConfirmSubmission={handleConfirmSubmission}
               onViewApplication={() => setCurrentTab('applications')}
@@ -273,6 +425,9 @@ export default function Home() {
           {currentTab === 'profile' && (
             <ProfileIntelligenceView
               profile={userProfile}
+              realProfile={realProfileData}
+              connectionStatus={connectionStatus}
+              onResyncUpwork={handleSyncUpwork}
               onUpdateProfile={(updated) => {
                 const newProfile = upworkService.updateUserProfile(updated);
                 setUserProfile(newProfile);
@@ -284,19 +439,13 @@ export default function Home() {
             <SettingsView
               profile={userProfile}
               isConnected={isConnected}
-              onRefreshConnection={() => {
-                upworkService.refreshConnection();
-                setIsConnected(true);
-              }}
-              onToggleDisconnect={() => {
-                if (isConnected) {
-                  upworkService.disconnect();
-                  setIsConnected(false);
-                } else {
-                  upworkService.refreshConnection();
-                  setIsConnected(true);
-                }
-              }}
+              connectionStatus={connectionStatus}
+              connectsData={connectsData}
+              realProfile={realProfileData}
+              onRefreshConnection={handleSyncUpwork}
+              onConnectOAuth={handleConnectOAuth}
+              onDisconnectUpwork={handleDisconnectUpwork}
+              onToggleDisconnect={handleDisconnectUpwork}
               onUpdateProfile={(updated) => {
                 const newProfile = upworkService.updateUserProfile(updated);
                 setUserProfile(newProfile);

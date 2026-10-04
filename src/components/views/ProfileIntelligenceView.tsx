@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import { UserProfile, PortfolioItem } from '../../types';
+import { UpworkProfileData, UpworkConnectionStatus } from '../../services/UpworkApiService';
 
 interface ProfileIntelligenceViewProps {
   profile: UserProfile;
+  realProfile?: UpworkProfileData | null;
+  connectionStatus?: UpworkConnectionStatus | null;
+  onResyncUpwork?: () => void;
   onUpdateProfile: (updated: Partial<UserProfile>) => void;
 }
 
 export const ProfileIntelligenceView: React.FC<ProfileIntelligenceViewProps> = ({
   profile,
+  realProfile,
+  connectionStatus,
+  onResyncUpwork,
   onUpdateProfile,
 }) => {
   // Local state for editable fields
@@ -135,7 +142,7 @@ export const ProfileIntelligenceView: React.FC<ProfileIntelligenceViewProps> = (
           </div>
           <div className="flex items-center gap-2.5 shrink-0">
             <button
-              onClick={() => alert('Synced latest credentials from Upwork verified roster.')}
+              onClick={onResyncUpwork || (() => alert('Upwork profile refreshed.'))}
               className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-2xs transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-slate-500">sync</span>
@@ -165,8 +172,8 @@ export const ProfileIntelligenceView: React.FC<ProfileIntelligenceViewProps> = (
                   </span>
                 </div>
                 <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  Synced 12m ago
+                  <span className={`w-1.5 h-1.5 rounded-full ${connectionStatus?.connected ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+                  {connectionStatus?.connected ? 'Synced' : 'Not Connected'}
                 </span>
               </div>
 
@@ -175,61 +182,59 @@ export const ProfileIntelligenceView: React.FC<ProfileIntelligenceViewProps> = (
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-sm font-bold text-slate-900 leading-snug">
-                      Senior Full-Stack Engineer (Laravel / React / Next.js)
+                      {realProfile?.title || connectionStatus?.accountName || '—'}
                     </h3>
                     <div className="flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap">
-                      <span>$85.00 / hr</span>
-                      <span className="material-symbols-outlined text-slate-400 text-[14px]">lock</span>
+                      <span>{realProfile?.hourlyRate ? `$${realProfile.hourlyRate} / hr` : '—'}</span>
                     </div>
                   </div>
                   <div className="mt-2.5">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                      <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                        star
+                    {realProfile?.profileSignals ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                          star
+                        </span>
+                        {realProfile.profileSignals.jobSuccessScore !== null
+                          ? `${realProfile.profileSignals.jobSuccessScore}% Job Success`
+                          : 'Job Success N/A'}
+                        {realProfile.profileSignals.topRated ? ' • Top Rated' : ''}
                       </span>
-                      100% Job Success • Top Rated Plus
-                    </span>
+                    ) : (
+                      <span className="text-[11px] text-slate-400 italic">No profile signals returned</span>
+                    )}
                   </div>
                 </div>
 
-                {/* Stats Metrics Grid */}
-                <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-100">
-                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Completed Jobs</p>
-                    <p className="text-sm font-bold text-slate-900 mt-0.5">48</p>
+                {/* Overview Snippet */}
+                {realProfile?.overview && (
+                  <div className="pt-2 border-t border-slate-100">
+                    <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                      {realProfile.overview}
+                    </p>
                   </div>
-                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Hours Billed</p>
-                    <p className="text-sm font-bold text-slate-900 mt-0.5">1,450+ hrs</p>
-                  </div>
-                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">On-Time Delivery</p>
-                    <p className="text-sm font-bold text-emerald-600 mt-0.5">100%</p>
-                  </div>
-                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Total Earnings</p>
-                    <p className="text-sm font-bold text-slate-900 mt-0.5">$180k+</p>
-                  </div>
-                </div>
+                )}
 
                 {/* Synced Skills Pills */}
                 <div className="pt-2 border-t border-slate-100">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-slate-700">Synced Skills (11)</span>
+                    <span className="text-xs font-semibold text-slate-700">
+                      Synced Skills ({realProfile?.skills?.length ?? 0})
+                    </span>
                     <span className="text-[11px] text-slate-400">From Upwork Roster</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {[
-                      'Laravel', 'React', 'TypeScript', 'Next.js', 'PostgreSQL',
-                      'Node.js', 'REST API', 'AWS', 'Tailwind CSS', 'Redis', 'Docker'
-                    ].map((s) => (
-                      <span
-                        key={s}
-                        className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60"
-                      >
-                        {s}
-                      </span>
-                    ))}
+                    {realProfile?.skills && realProfile.skills.length > 0 ? (
+                      realProfile.skills.map((s) => (
+                        <span
+                          key={s}
+                          className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px] font-medium border border-slate-200/60"
+                        >
+                          {s}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">No skills listed</span>
+                    )}
                   </div>
                 </div>
 
