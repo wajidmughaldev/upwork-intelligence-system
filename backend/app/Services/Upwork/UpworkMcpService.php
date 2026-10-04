@@ -349,12 +349,11 @@ class UpworkMcpService
             }
             $type = strtoupper((string) ($acc['type'] ?? $acc['account_type'] ?? $acc['role'] ?? ''));
             if (str_contains($type, 'TALENT') || str_contains($type, 'FREELANCER')) {
+                // Minimum data: keep only the identifier needed for later calls
+                // and a display name. The raw MCP payload is discarded.
                 $talentAccounts[] = [
-                    'internal_index' => $index,
                     'org_uid' => (string) ($acc['org_uid'] ?? $acc['id'] ?? $acc['organization_id'] ?? ''),
                     'name' => (string) ($acc['name'] ?? $acc['company_name'] ?? $acc['user_name'] ?? 'Freelancer Account'),
-                    'role' => 'Freelancer',
-                    'raw' => $acc,
                 ];
             }
         }
@@ -379,7 +378,7 @@ class UpworkMcpService
                 'account_name' => $chosen['name'],
                 'account_role' => 'Freelancer',
                 'account_status' => 'selected',
-                'raw_metadata' => $chosen['raw'],
+                'raw_metadata' => null,
             ]);
 
             return [
@@ -401,7 +400,12 @@ class UpworkMcpService
 
         $connection->update([
             'account_status' => 'selection_required',
-            'raw_metadata' => ['talent_candidates' => $talentAccounts],
+            // Task-scoped: candidates are only kept until the user picks one,
+            // and never longer than 24 hours.
+            'raw_metadata' => [
+                'talent_candidates' => $talentAccounts,
+                'expires_at' => now()->addHours(24)->toIso8601String(),
+            ],
         ]);
 
         throw new AccountSelectionRequiredException($safeCandidates);
@@ -420,7 +424,14 @@ class UpworkMcpService
             throw new ReconnectRequiredException('No active Upwork connection.');
         }
 
-        $candidates = $connection->raw_metadata['talent_candidates'] ?? [];
+        $metadata = $connection->raw_metadata ?? [];
+        $expiresAt = isset($metadata['expires_at']) ? \Carbon\Carbon::parse($metadata['expires_at']) : null;
+        if ($expiresAt !== null && $expiresAt->isPast()) {
+            $connection->update(['raw_metadata' => null]);
+            throw new Exception('Account selection expired. Please reconnect.');
+        }
+
+        $candidates = $metadata['talent_candidates'] ?? [];
         $chosen = null;
 
         foreach ($candidates as $idx => $c) {
@@ -439,7 +450,7 @@ class UpworkMcpService
             'account_name' => $chosen['name'],
             'account_role' => 'Freelancer',
             'account_status' => 'selected',
-            'raw_metadata' => $chosen['raw'],
+            'raw_metadata' => null,
         ]);
 
         return [
@@ -477,10 +488,11 @@ class UpworkMcpService
      * @return array<string, mixed>
      */
     protected function callTool(string $tool, array $arguments = []): array
-
     {
         $this->assertReadOnlyTool($tool, $arguments);
         $connection = $this->ensureFreshToken();
+
+        $mcpToolName = str_starts_with($tool, 'upwork__') ? $tool : "upwork__{$tool}";
 
         try {
             /** @var \Laravel\Mcp\WebClient $client */
@@ -488,7 +500,7 @@ class UpworkMcpService
             if (! empty($connection->access_token)) {
                 $client->withToken($connection->access_token);
             }
-            $result = $client->callTool($tool, $arguments);
+            $result = $client->callTool($mcpToolName, $arguments);
 
             if ($result->isError) {
                 $errorMsg = $result->text();
@@ -527,6 +539,8 @@ class UpworkMcpService
      */
     protected function assertReadOnlyTool(string $tool, array $arguments): void
     {
+        $normalizedTool = str_starts_with($tool, 'upwork__') ? substr($tool, 8) : $tool;
+
         $allowedTools = [
             'list_accounts',
             'get_profile',
@@ -535,22 +549,22 @@ class UpworkMcpService
             'get_tool_help',
         ];
 
-        if (! in_array($tool, $allowedTools, true)) {
+        if (! in_array($normalizedTool, $allowedTools, true)) {
             throw new Exception("Security Exception: Tool [{$tool}] is blocked in Phase 2A (Strictly Read-Only Mode).");
         }
 
         // Action-specific read-only constraints
         $action = $arguments['action'] ?? null;
 
-        if ($tool === 'get_profile' && ! in_array($action, ['get', 'list_highlights', 'connects_balance', 'transactions'], true)) {
+        if ($normalizedTool === 'get_profile' && ! in_array($action, ['get', 'list_highlights', 'connects_balance', 'transactions'], true)) {
             throw new Exception("Security Exception: get_profile action [{$action}] is not permitted.");
         }
 
-        if ($tool === 'find_jobs' && ! in_array($action, ['search', 'get', 'smart_search'], true)) {
+        if ($normalizedTool === 'find_jobs' && ! in_array($action, ['search', 'get', 'smart_search'], true)) {
             throw new Exception("Security Exception: find_jobs action [{$action}] is not permitted.");
         }
 
-        if ($tool === 'list_freelancer_proposals' && ! in_array($action, ['list', 'invitations', 'get', 'get_room'], true)) {
+        if ($normalizedTool === 'list_freelancer_proposals' && ! in_array($action, ['list', 'invitations', 'get', 'get_room'], true)) {
             throw new Exception("Security Exception: list_freelancer_proposals action [{$action}] is not permitted.");
         }
     }
