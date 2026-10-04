@@ -37,5 +37,19 @@ yarn-error.log*
 .vercel
 
 # typescript
-*.tsbuildinfo
 next-env.d.ts
+
+# backend
+/backend/vendor/
+/backend/.env
+/backend/.env.backup
+/backend/.env.production
+/backend/database/*.sqlite
+/backend/database/*.sqlite-journal
+/backend/storage/*.key
+/backend/storage/logs/*.log
+/backend/storage/framework/cache/*
+/backend/storage/framework/sessions/*
+/backend/storage/framework/views/*
+!/backend/storage/framework/.gitignore
+!/backend/storage/logs/.gitignore
