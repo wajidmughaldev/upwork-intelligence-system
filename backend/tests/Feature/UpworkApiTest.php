@@ -162,4 +162,21 @@ class UpworkApiTest extends TestCase
         $this->assertEquals('http://localhost:3000/dashboard', $controller->sanitizeReturnTo('/dashboard'));
         $this->assertEquals('http://localhost:3000/settings?tab=upwork', $controller->sanitizeReturnTo('http://localhost:3000/settings?tab=upwork'));
     }
+
+    public function test_stateful_session_authenticated_api_access(): void
+    {
+        $user = User::factory()->create();
+
+        // Simulate stateful first-party SPA session login
+        $this->actingAs($user, 'web');
+
+        $response = $this->getJson('/api/upwork/status', [
+            'referer' => 'http://localhost:3000',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'connected' => false,
+            ]);
+    }
 }

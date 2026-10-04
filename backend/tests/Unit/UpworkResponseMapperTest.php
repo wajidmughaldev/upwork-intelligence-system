@@ -188,17 +188,31 @@ class UpworkResponseMapperTest extends TestCase
         $this->assertSame([], $mappedDetail['screeningQuestions']);
     }
 
-    public function test_numeric_job_id_never_appears_in_dto_reference_and_safe_ciphertext_is_returned(): void
+    public function test_strict_tilde_02_job_reference_validation(): void
     {
-        // Numeric-only ID must result in null reference
-        $numericJob = ['jobs' => [['id' => '1849204918239019283', 'title' => 'Laravel Job']]];
-        $mappedNumeric = UpworkResponseMapper::mapJobSearchResults($numericJob);
-        $this->assertNull($mappedNumeric['jobs'][0]['reference']);
+        // ~02abc123... -> returns reference
+        $job02 = ['jobs' => [['id' => '1849204918239019283', 'ciphertext' => '~02189a7f34c2b98e71', 'title' => 'Laravel Job']]];
+        $this->assertEquals('~02189a7f34c2b98e71', UpworkResponseMapper::mapJobSearchResults($job02)['jobs'][0]['reference']);
 
-        // Safe ciphertext starting with ~02 must be returned
-        $ciphertextJob = ['jobs' => [['id' => '1849204918239019283', 'ciphertext' => '~02189a7f34c2b98e71', 'title' => 'Laravel Job']]];
-        $mappedCiphertext = UpworkResponseMapper::mapJobSearchResults($ciphertextJob);
-        $this->assertEquals('~02189a7f34c2b98e71', $mappedCiphertext['jobs'][0]['reference']);
+        // Numeric job ID -> null
+        $jobNumeric = ['jobs' => [['id' => '1849204918239019283', 'title' => 'Laravel Job']]];
+        $this->assertNull(UpworkResponseMapper::mapJobSearchResults($jobNumeric)['jobs'][0]['reference']);
+
+        // ~01... -> null
+        $job01 = ['jobs' => [['ciphertext' => '~019999999999', 'title' => 'Laravel Job']]];
+        $this->assertNull(UpworkResponseMapper::mapJobSearchResults($job01)['jobs'][0]['reference']);
+
+        // Arbitrary text reference -> null
+        $jobText = ['jobs' => [['reference' => 'arbitrary_legacy_ref_123', 'title' => 'Laravel Job']]];
+        $this->assertNull(UpworkResponseMapper::mapJobSearchResults($jobText)['jobs'][0]['reference']);
+
+        // UUID -> null
+        $jobUuid = ['jobs' => [['job_reference' => 'c8a9f24b-3b7d-4bad-9bdd-2b0d7b3dcb6d', 'title' => 'Laravel Job']]];
+        $this->assertNull(UpworkResponseMapper::mapJobSearchResults($jobUuid)['jobs'][0]['reference']);
+
+        // Empty value -> null
+        $jobEmpty = ['jobs' => [['ciphertext' => '', 'title' => 'Laravel Job']]];
+        $this->assertNull(UpworkResponseMapper::mapJobSearchResults($jobEmpty)['jobs'][0]['reference']);
     }
 
     public function test_proposal_and_invitation_internal_ids_are_absent_from_public_dto(): void

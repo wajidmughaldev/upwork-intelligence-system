@@ -271,8 +271,8 @@ class UpworkResponseMapper
     }
 
     /**
-     * Only allow ciphertext (~02...) or non-numeric public job reference string.
-     * Numeric IDs are never exposed in the public DTO.
+     * Strictly limit public job reference to ~02 ciphertext string.
+     * All other values (~01, numeric IDs, UUIDs, arbitrary text, empty values) return null.
      */
     protected static function resolvePublicJobReference(array $job): ?string
     {
@@ -284,13 +284,7 @@ class UpworkResponseMapper
         ], fn ($v) => is_string($v) && ! empty($v));
 
         foreach ($candidates as $val) {
-            if (str_starts_with($val, '~02') || str_starts_with($val, '~')) {
-                return $val;
-            }
-        }
-
-        foreach ($candidates as $val) {
-            if (! ctype_digit($val) && ! is_numeric($val)) {
+            if (str_starts_with($val, '~02')) {
                 return $val;
             }
         }
