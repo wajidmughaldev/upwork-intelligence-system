@@ -205,7 +205,23 @@ class UpworkApiController extends Controller
                 ], 401);
             }
 
-            $candidates = $connection->raw_metadata['talent_candidates'] ?? [];
+            $metadata = $connection->raw_metadata ?? [];
+            $expiresAt = isset($metadata['expires_at']) ? \Carbon\Carbon::parse($metadata['expires_at']) : null;
+
+            if ($expiresAt !== null && $expiresAt->isPast()) {
+                $connection->update([
+                    'raw_metadata' => null,
+                    'account_status' => 'selection_expired',
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'code' => 'SELECTION_EXPIRED',
+                    'message' => 'Account selection expired. Please reconnect.',
+                ], 410);
+            }
+
+            $candidates = $metadata['talent_candidates'] ?? [];
             $safe = [];
             foreach ($candidates as $idx => $c) {
                 $safe[] = [

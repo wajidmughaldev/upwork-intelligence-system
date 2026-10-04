@@ -47,6 +47,7 @@ class UpworkConnection extends Model
         return [
             'access_token' => 'encrypted',
             'refresh_token' => 'encrypted',
+            'org_uid' => 'encrypted',
             'raw_metadata' => 'encrypted:array',
             'expires_at' => 'datetime',
             'is_active' => 'boolean',

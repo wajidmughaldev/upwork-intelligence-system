@@ -137,4 +137,54 @@ class UpworkResponseMapperTest extends TestCase
         $this->assertEquals('Interview Request: React Specialist', $mappedInvitations[0]['jobTitle']);
         $this->assertStringNotContainsString('secret_org_uid', json_encode($mappedInvitations));
     }
+
+    public function test_missing_upwork_fields_remain_null_without_fabricated_defaults(): void
+    {
+        // Empty profile payload
+        $mappedProfile = UpworkResponseMapper::mapProfile([], [], []);
+        $this->assertNull($mappedProfile['title']);
+        $this->assertNull($mappedProfile['overview']);
+        $this->assertNull($mappedProfile['hourlyRate']);
+        $this->assertNull($mappedProfile['connectsBalance']);
+        $this->assertNull($mappedProfile['profileSignals']['jobSuccessScore']);
+        $this->assertNull($mappedProfile['profileSignals']['topRated']);
+        $this->assertSame([], $mappedProfile['skills']);
+        $this->assertSame([], $mappedProfile['portfolioHighlights']);
+
+        // Empty job search item payload
+        $rawSearch = ['jobs' => [[]]];
+        $mappedSearch = UpworkResponseMapper::mapJobSearchResults($rawSearch);
+        $job = $mappedSearch['jobs'][0];
+
+        $this->assertNull($job['reference']);
+        $this->assertNull($job['title']);
+        $this->assertNull($job['descriptionSnippet']);
+        $this->assertNull($job['jobType']);
+        $this->assertNull($job['budget']);
+        $this->assertNull($job['hourlyRate']);
+        $this->assertNull($job['experienceLevel']);
+        $this->assertNull($job['postedTime']);
+        $this->assertNull($job['connectsRequired']);
+        $this->assertNull($job['client']['paymentVerified']);
+        $this->assertNull($job['client']['rating']);
+        $this->assertNull($job['client']['totalSpent']);
+        $this->assertNull($job['client']['location']);
+
+        // Empty job detail payload
+        $mappedDetail = UpworkResponseMapper::mapJobDetail([]);
+        $this->assertNull($mappedDetail['reference']);
+        $this->assertNull($mappedDetail['title']);
+        $this->assertNull($mappedDetail['description']);
+        $this->assertNull($mappedDetail['jobType']);
+        $this->assertNull($mappedDetail['budget']);
+        $this->assertNull($mappedDetail['hourlyRate']);
+        $this->assertNull($mappedDetail['experienceLevel']);
+        $this->assertNull($mappedDetail['connectsRequired']);
+        $this->assertNull($mappedDetail['client']['paymentVerified']);
+        $this->assertNull($mappedDetail['client']['rating']);
+        $this->assertNull($mappedDetail['client']['totalSpent']);
+        $this->assertNull($mappedDetail['client']['hireRate']);
+        $this->assertNull($mappedDetail['client']['location']);
+        $this->assertSame([], $mappedDetail['screeningQuestions']);
+    }
 }

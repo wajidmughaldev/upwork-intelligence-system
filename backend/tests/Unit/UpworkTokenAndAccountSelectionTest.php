@@ -215,4 +215,56 @@ class UpworkTokenAndAccountSelectionTest extends TestCase
         $this->assertFalse($data['success']);
         $this->assertEquals('RECONNECT_REQUIRED', $data['code']);
     }
+
+    public function test_org_uid_is_stored_encrypted_in_raw_database_and_hidden_from_serialization(): void
+    {
+        $connection = UpworkConnection::create([
+            'provider' => 'upwork',
+            'access_token' => 'active_token',
+            'org_uid' => 'sensitive_org_uid_99999',
+            'account_status' => 'selected',
+            'is_active' => true,
+        ]);
+
+        // Raw database query bypasses Eloquent decryption cast
+        $raw = \Illuminate\Support\Facades\DB::table('upwork_connections')->where('id', $connection->id)->first();
+        $this->assertNotNull($raw);
+        $this->assertNotEquals('sensitive_org_uid_99999', $raw->org_uid);
+        $this->assertStringNotContainsString('sensitive_org_uid_99999', (string) $raw->org_uid);
+
+        // Access via Eloquent decrypts seamlessly
+        $this->assertEquals('sensitive_org_uid_99999', $connection->fresh()->org_uid);
+
+        // Serialization hides org_uid
+        $array = $connection->fresh()->toArray();
+        $this->assertArrayNotHasKey('org_uid', $array);
+        $this->assertStringNotContainsString('sensitive_org_uid_99999', json_encode($array));
+    }
+
+    public function test_expired_candidate_metadata_clears_raw_metadata_and_returns_selection_expired(): void
+    {
+        $connection = UpworkConnection::create([
+            'provider' => 'upwork',
+            'access_token' => 'active_token',
+            'account_status' => 'selection_required',
+            'raw_metadata' => [
+                'talent_candidates' => [
+                    '0' => ['name' => 'Profile Alpha', 'org_uid' => 'secret_org_1'],
+                ],
+                'expires_at' => Carbon::now()->subMinutes(10)->toIso8601String(),
+            ],
+            'is_active' => true,
+        ]);
+
+        $response = $this->getJson('/api/upwork/accounts');
+
+        $response->assertStatus(410)
+            ->assertJson([
+                'success' => false,
+                'code' => 'SELECTION_EXPIRED',
+            ]);
+
+        $this->assertNull($connection->fresh()->raw_metadata);
+        $this->assertEquals('selection_expired', $connection->fresh()->account_status);
+    }
 }

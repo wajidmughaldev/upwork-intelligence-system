@@ -7,8 +7,9 @@ This document establishes the official compliance rules and architectural bounda
 ## 1. Storage & Data Lifecycle Policy
 
 ### A. OAuth Credentials & Security
-- **Encrypted at Rest**: `access_token`, `refresh_token`, `client_id`, and `org_uid` MUST be stored with AES-256-CBC encryption using Laravel's application key (`APP_KEY`).
-- **Non-Exposure**: Credentials, refresh tokens, and internal identifiers (such as `org_uid` or `preview_id`) MUST NEVER be returned in frontend API responses or logged in diagnostics.
+- **Encrypted at Rest**: `access_token`, `refresh_token`, `org_uid`, and `raw_metadata` MUST be stored with AES-256-CBC encryption using Laravel's application key (`APP_KEY`).
+- **Public OAuth Identifiers**: `client_id` holds the public OAuth Client Metadata Document URL (e.g. `https://<backend_url>/mcp/oauth/upwork/client-metadata.json`) per official Upwork Dynamic Client Registration specifications and is unencrypted.
+- **Non-Exposure**: Credentials, refresh tokens, raw metadata, and internal identifiers (such as `org_uid` or `preview_id`) MUST NEVER be returned in frontend API responses or logged in diagnostics. `org_uid`, `access_token`, `refresh_token`, and `raw_metadata` are strictly hidden from Eloquent serialization.
 
 ### B. Upwork Content & Caching Policy
 - **Maximum Cache TTL**: Any cached Upwork content (job listings, profile details, client metadata) MUST NOT exceed a 24-hour retention period.

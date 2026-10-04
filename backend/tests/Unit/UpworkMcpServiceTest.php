@@ -117,4 +117,56 @@ class UpworkMcpServiceTest extends TestCase
         $this->assertEquals('~029999999999999999', $normalized['jobs'][1]['ciphertext']);
         $this->assertEquals('1849204918239019999', $normalized['jobs'][1]['numeric_id']);
     }
+
+    public function test_minimal_read_only_allowlist_permits_phase_2a_actions_and_blocks_disallowed_actions(): void
+    {
+        $reflection = new \ReflectionClass($this->service);
+        $method = $reflection->getMethod('assertReadOnlyTool');
+        $method->setAccessible(true);
+
+        // Allowed Phase 2A tool/action combinations (no exception thrown)
+        $allowed = [
+            ['list_accounts', []],
+            ['get_profile', ['action' => 'get']],
+            ['get_profile', ['action' => 'list_highlights']],
+            ['get_profile', ['action' => 'connects_balance']],
+            ['find_jobs', ['action' => 'search']],
+            ['find_jobs', ['action' => 'smart_search']],
+            ['find_jobs', ['action' => 'get']],
+            ['list_freelancer_proposals', ['action' => 'list']],
+            ['list_freelancer_proposals', ['action' => 'invitations']],
+            ['get_tool_help', []],
+            // Also test upwork__ prefixed names
+            ['upwork__find_jobs', ['action' => 'search']],
+        ];
+
+        foreach ($allowed as [$tool, $args]) {
+            try {
+                $method->invoke($this->service, $tool, $args);
+                $this->assertTrue(true);
+            } catch (Exception $e) {
+                $this->fail("Allowed tool [{$tool}] with action [" . ($args['action'] ?? '') . "] threw unexpected exception: " . $e->getMessage());
+            }
+        }
+
+        // Removed/disallowed actions must throw Security Exception
+        $disallowed = [
+            ['get_profile', ['action' => 'transactions']],
+            ['list_freelancer_proposals', ['action' => 'get_room']],
+            ['list_freelancer_proposals', ['action' => 'get']],
+            ['find_jobs', ['action' => 'delete']],
+            ['manage_proposals', ['action' => 'submit']],
+            ['confirm_preview', []],
+            ['submit_milestones', []],
+        ];
+
+        foreach ($disallowed as [$tool, $args]) {
+            try {
+                $method->invoke($this->service, $tool, $args);
+                $this->fail("Disallowed tool/action [{$tool}] was not blocked by assertReadOnlyTool.");
+            } catch (Exception $e) {
+                $this->assertStringContainsString('Security Exception', $e->getMessage());
+            }
+        }
+    }
 }

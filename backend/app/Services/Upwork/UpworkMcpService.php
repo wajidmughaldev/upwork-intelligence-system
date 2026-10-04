@@ -556,7 +556,7 @@ class UpworkMcpService
         // Action-specific read-only constraints
         $action = $arguments['action'] ?? null;
 
-        if ($normalizedTool === 'get_profile' && ! in_array($action, ['get', 'list_highlights', 'connects_balance', 'transactions'], true)) {
+        if ($normalizedTool === 'get_profile' && ! in_array($action, ['get', 'list_highlights', 'connects_balance'], true)) {
             throw new Exception("Security Exception: get_profile action [{$action}] is not permitted.");
         }
 
@@ -564,7 +564,7 @@ class UpworkMcpService
             throw new Exception("Security Exception: find_jobs action [{$action}] is not permitted.");
         }
 
-        if ($normalizedTool === 'list_freelancer_proposals' && ! in_array($action, ['list', 'invitations', 'get', 'get_room'], true)) {
+        if ($normalizedTool === 'list_freelancer_proposals' && ! in_array($action, ['list', 'invitations'], true)) {
             throw new Exception("Security Exception: list_freelancer_proposals action [{$action}] is not permitted.");
         }
     }

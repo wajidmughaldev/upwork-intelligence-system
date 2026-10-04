@@ -8,6 +8,7 @@ class UpworkResponseMapper
 {
     /**
      * Map raw profile, highlights, and connects data to a sanitized DTO array.
+     * Optional fields remain null if missing from Upwork response payload.
      *
      * @param  array<string, mixed>  $profileRaw
      * @param  array<string, mixed>  $highlightsRaw
@@ -27,8 +28,8 @@ class UpworkResponseMapper
                     continue;
                 }
                 $sanitizedHighlights[] = [
-                    'title' => (string) ($h['title'] ?? $h['name'] ?? 'Portfolio Highlight'),
-                    'description' => (string) ($h['description'] ?? $h['summary'] ?? ''),
+                    'title' => isset($h['title']) ? (string) $h['title'] : (isset($h['name']) ? (string) $h['name'] : null),
+                    'description' => isset($h['description']) ? (string) $h['description'] : (isset($h['summary']) ? (string) $h['summary'] : null),
                     'url' => isset($h['url']) ? (string) $h['url'] : null,
                     'completionDate' => isset($h['completion_date']) ? (string) $h['completion_date'] : null,
                 ];
@@ -47,23 +48,24 @@ class UpworkResponseMapper
             }
         }
 
-        $balance = 0;
+        $balance = null;
         if (is_numeric($connects)) {
             $balance = (int) $connects;
         } elseif (is_array($connects)) {
-            $balance = (int) ($connects['available'] ?? $connects['connects'] ?? $connects['balance'] ?? 0);
+            $rawBal = $connects['available'] ?? $connects['connects'] ?? $connects['balance'] ?? null;
+            $balance = is_numeric($rawBal) ? (int) $rawBal : null;
         }
 
         return [
-            'title' => (string) ($profile['title'] ?? $profile['profile_title'] ?? 'Full Stack Developer'),
-            'overview' => (string) ($profile['overview'] ?? $profile['description'] ?? ''),
-            'hourlyRate' => (string) ($profile['hourly_rate'] ?? $profile['rate'] ?? '$75.00'),
+            'title' => isset($profile['title']) ? (string) $profile['title'] : (isset($profile['profile_title']) ? (string) $profile['profile_title'] : null),
+            'overview' => isset($profile['overview']) ? (string) $profile['overview'] : (isset($profile['description']) ? (string) $profile['description'] : null),
+            'hourlyRate' => isset($profile['hourly_rate']) ? (string) $profile['hourly_rate'] : (isset($profile['rate']) ? (string) $profile['rate'] : null),
             'skills' => $skills,
             'portfolioHighlights' => $sanitizedHighlights,
             'connectsBalance' => $balance,
             'profileSignals' => [
                 'jobSuccessScore' => isset($profile['jss']) ? (int) $profile['jss'] : (isset($profile['job_success_score']) ? (int) $profile['job_success_score'] : null),
-                'topRated' => (bool) ($profile['top_rated'] ?? false),
+                'topRated' => isset($profile['top_rated']) ? (bool) $profile['top_rated'] : null,
             ],
         ];
     }
@@ -72,19 +74,20 @@ class UpworkResponseMapper
      * Map raw connects payload to safe response.
      *
      * @param  array<string, mixed>  $connectsRaw
-     * @return array{available: int, membershipType: string|null}
+     * @return array{available: int|null, membershipType: string|null}
      */
     public static function mapConnects(array $connectsRaw): array
     {
         $raw = $connectsRaw['connects_balance'] ?? $connectsRaw['balance'] ?? $connectsRaw['data'] ?? $connectsRaw;
 
-        $available = 0;
+        $available = null;
         $membership = null;
 
         if (is_numeric($raw)) {
             $available = (int) $raw;
         } elseif (is_array($raw)) {
-            $available = (int) ($raw['available'] ?? $raw['connects'] ?? $raw['balance'] ?? 0);
+            $rawBal = $raw['available'] ?? $raw['connects'] ?? $raw['balance'] ?? null;
+            $available = is_numeric($rawBal) ? (int) $rawBal : null;
             $membership = isset($raw['membership']) ? (string) $raw['membership'] : null;
         }
 
@@ -113,25 +116,30 @@ class UpworkResponseMapper
                 continue;
             }
 
-            // Expose ONLY safe reference (~02... or safe reference key) for navigation
-            $reference = (string) ($job['ciphertext'] ?? $job['job_reference'] ?? $job['reference'] ?? $job['id'] ?? '');
+            // Expose ONLY safe reference (~02... or ciphertext string) for navigation
+            $reference = isset($job['ciphertext']) ? (string) $job['ciphertext'] : (isset($job['job_reference']) ? (string) $job['job_reference'] : (isset($job['reference']) ? (string) $job['reference'] : (isset($job['id']) ? (string) $job['id'] : null)));
+
+            $jobType = null;
+            if (isset($job['job_type'])) {
+                $jobType = strtolower((string) $job['job_type']) === 'hourly' ? 'hourly' : 'fixed';
+            }
 
             $sanitizedJobs[] = [
                 'reference' => $reference,
-                'title' => (string) ($job['title'] ?? 'Untitled Job'),
-                'descriptionSnippet' => (string) ($job['snippet'] ?? $job['description_snippet'] ?? substr((string) ($job['description'] ?? ''), 0, 240)),
-                'jobType' => strtolower((string) ($job['job_type'] ?? 'fixed')) === 'hourly' ? 'hourly' : 'fixed',
+                'title' => isset($job['title']) ? (string) $job['title'] : null,
+                'descriptionSnippet' => isset($job['snippet']) ? (string) $job['snippet'] : (isset($job['description_snippet']) ? (string) $job['description_snippet'] : (isset($job['description']) ? substr((string) $job['description'], 0, 240) : null)),
+                'jobType' => $jobType,
                 'budget' => isset($job['budget']) ? (string) $job['budget'] : null,
                 'hourlyRate' => isset($job['rate']) ? (string) $job['rate'] : (isset($job['hourly_rate']) ? (string) $job['hourly_rate'] : null),
                 'skills' => is_array($job['skills'] ?? null) ? array_values(array_filter($job['skills'], is_string(...))) : [],
-                'experienceLevel' => (string) ($job['experience_level'] ?? 'intermediate'),
-                'postedTime' => (string) ($job['posted_time'] ?? $job['created_at'] ?? 'Recently'),
-                'connectsRequired' => (int) ($job['connects_required'] ?? $job['connects'] ?? 16),
+                'experienceLevel' => isset($job['experience_level']) ? (string) $job['experience_level'] : (isset($job['experience_level_label']) ? (string) $job['experience_level_label'] : null),
+                'postedTime' => isset($job['posted_time']) ? (string) $job['posted_time'] : (isset($job['created_at']) ? (string) $job['created_at'] : null),
+                'connectsRequired' => isset($job['connects_required']) ? (int) $job['connects_required'] : (isset($job['connects']) ? (int) $job['connects'] : null),
                 'client' => [
-                    'paymentVerified' => (bool) ($job['client']['verified_payment'] ?? $job['verified_payment'] ?? true),
-                    'rating' => (float) ($job['client']['rating'] ?? $job['client_rating'] ?? 5.0),
-                    'totalSpent' => (string) ($job['client']['total_spent'] ?? $job['client_total_charge'] ?? '$10k+'),
-                    'location' => (string) ($job['client']['location'] ?? $job['client_country'] ?? 'United States'),
+                    'paymentVerified' => isset($job['client']['verified_payment']) ? (bool) $job['client']['verified_payment'] : (isset($job['verified_payment']) ? (bool) $job['verified_payment'] : null),
+                    'rating' => isset($job['client']['rating']) ? (float) $job['client']['rating'] : (isset($job['client_rating']) ? (float) $job['client_rating'] : null),
+                    'totalSpent' => isset($job['client']['total_spent']) ? (string) $job['client']['total_spent'] : (isset($job['client_total_charge']) ? (string) $job['client_total_charge'] : null),
+                    'location' => isset($job['client']['location']) ? (string) $job['client']['location'] : (isset($job['client_country']) ? (string) $job['client_country'] : null),
                 ],
             ];
         }
@@ -156,7 +164,12 @@ class UpworkResponseMapper
     {
         $job = $jobRaw['job'] ?? $jobRaw['data'] ?? $jobRaw;
 
-        $reference = (string) ($job['ciphertext'] ?? $job['job_reference'] ?? $job['reference'] ?? $job['id'] ?? '');
+        $reference = isset($job['ciphertext']) ? (string) $job['ciphertext'] : (isset($job['job_reference']) ? (string) $job['job_reference'] : (isset($job['reference']) ? (string) $job['reference'] : (isset($job['id']) ? (string) $job['id'] : null)));
+
+        $jobType = null;
+        if (isset($job['job_type'])) {
+            $jobType = strtolower((string) $job['job_type']) === 'hourly' ? 'hourly' : 'fixed';
+        }
 
         $screening = [];
         $rawQuestions = $job['screening_questions'] ?? $job['questions'] ?? [];
@@ -172,20 +185,20 @@ class UpworkResponseMapper
 
         return [
             'reference' => $reference,
-            'title' => (string) ($job['title'] ?? 'Job Details'),
-            'description' => (string) ($job['description'] ?? ''),
-            'jobType' => strtolower((string) ($job['job_type'] ?? 'fixed')) === 'hourly' ? 'hourly' : 'fixed',
+            'title' => isset($job['title']) ? (string) $job['title'] : null,
+            'description' => isset($job['description']) ? (string) $job['description'] : null,
+            'jobType' => $jobType,
             'budget' => isset($job['budget']) ? (string) $job['budget'] : null,
             'hourlyRate' => isset($job['rate']) ? (string) $job['rate'] : (isset($job['hourly_rate']) ? (string) $job['hourly_rate'] : null),
             'skills' => is_array($job['skills'] ?? null) ? array_values(array_filter($job['skills'], is_string(...))) : [],
-            'experienceLevel' => (string) ($job['experience_level'] ?? 'intermediate'),
-            'connectsRequired' => (int) ($job['connects_required'] ?? $job['connects'] ?? 16),
+            'experienceLevel' => isset($job['experience_level']) ? (string) $job['experience_level'] : (isset($job['experience_level_label']) ? (string) $job['experience_level_label'] : null),
+            'connectsRequired' => isset($job['connects_required']) ? (int) $job['connects_required'] : (isset($job['connects']) ? (int) $job['connects'] : null),
             'client' => [
-                'paymentVerified' => (bool) ($job['client']['verified_payment'] ?? $job['verified_payment'] ?? true),
-                'rating' => (float) ($job['client']['rating'] ?? $job['client_rating'] ?? 5.0),
-                'totalSpent' => (string) ($job['client']['total_spent'] ?? $job['client_total_charge'] ?? '$10k+'),
-                'hireRate' => (string) ($job['client']['hire_rate'] ?? '90%'),
-                'location' => (string) ($job['client']['location'] ?? $job['client_country'] ?? 'United States'),
+                'paymentVerified' => isset($job['client']['verified_payment']) ? (bool) $job['client']['verified_payment'] : (isset($job['verified_payment']) ? (bool) $job['verified_payment'] : null),
+                'rating' => isset($job['client']['rating']) ? (float) $job['client']['rating'] : (isset($job['client_rating']) ? (float) $job['client_rating'] : null),
+                'totalSpent' => isset($job['client']['total_spent']) ? (string) $job['client']['total_spent'] : (isset($job['client_total_charge']) ? (string) $job['client_total_charge'] : null),
+                'hireRate' => isset($job['client']['hire_rate']) ? (string) $job['client']['hire_rate'] : null,
+                'location' => isset($job['client']['location']) ? (string) $job['client']['location'] : (isset($job['client_country']) ? (string) $job['client_country'] : null),
             ],
             'screeningQuestions' => $screening,
         ];
@@ -211,12 +224,12 @@ class UpworkResponseMapper
             }
 
             $results[] = [
-                'reference' => (string) ($prop['id'] ?? $prop['proposal_id'] ?? ''),
-                'jobTitle' => (string) ($prop['job_title'] ?? $prop['title'] ?? 'Proposed Job'),
-                'clientName' => (string) ($prop['client_name'] ?? 'Client'),
-                'status' => (string) ($prop['status'] ?? 'Submitted'),
-                'statusLabel' => (string) ($prop['status_label'] ?? $prop['status'] ?? 'Active'),
-                'submittedDate' => (string) ($prop['submitted_date'] ?? $prop['created_at'] ?? 'Recently'),
+                'reference' => isset($prop['id']) ? (string) $prop['id'] : (isset($prop['proposal_id']) ? (string) $prop['proposal_id'] : null),
+                'jobTitle' => isset($prop['job_title']) ? (string) $prop['job_title'] : (isset($prop['title']) ? (string) $prop['title'] : null),
+                'clientName' => isset($prop['client_name']) ? (string) $prop['client_name'] : null,
+                'status' => isset($prop['status']) ? (string) $prop['status'] : null,
+                'statusLabel' => isset($prop['status_label']) ? (string) $prop['status_label'] : (isset($prop['status']) ? (string) $prop['status'] : null),
+                'submittedDate' => isset($prop['submitted_date']) ? (string) $prop['submitted_date'] : (isset($prop['created_at']) ? (string) $prop['created_at'] : null),
                 'bidAmount' => isset($prop['bid_amount']) ? (string) $prop['bid_amount'] : (isset($prop['rate']) ? (string) $prop['rate'] : null),
                 'connectsUsed' => isset($prop['connects_used']) ? (int) $prop['connects_used'] : null,
             ];
@@ -245,11 +258,11 @@ class UpworkResponseMapper
             }
 
             $results[] = [
-                'invitationReference' => (string) ($inv['id'] ?? $inv['invitation_id'] ?? ''),
-                'jobTitle' => (string) ($inv['job_title'] ?? $inv['title'] ?? 'Job Invitation'),
-                'clientName' => (string) ($inv['client_name'] ?? 'Client'),
-                'receivedDate' => (string) ($inv['received_date'] ?? $inv['created_at'] ?? 'Recently'),
-                'status' => (string) ($inv['status'] ?? 'Pending'),
+                'invitationReference' => isset($inv['id']) ? (string) $inv['id'] : (isset($inv['invitation_id']) ? (string) $inv['invitation_id'] : null),
+                'jobTitle' => isset($inv['job_title']) ? (string) $inv['job_title'] : (isset($inv['title']) ? (string) $inv['title'] : null),
+                'clientName' => isset($inv['client_name']) ? (string) $inv['client_name'] : null,
+                'receivedDate' => isset($inv['received_date']) ? (string) $inv['received_date'] : (isset($inv['created_at']) ? (string) $inv['created_at'] : null),
+                'status' => isset($inv['status']) ? (string) $inv['status'] : null,
             ];
         }
 
