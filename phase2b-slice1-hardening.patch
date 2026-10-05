@@ -1,0 +1,1243 @@
+From 9fe4210202b508cfdc9a84a2bd2caec2707e0e06 Mon Sep 17 00:00:00 2001
+From: AI Studio Assistant <assistant@aistudio.google.com>
+Date: Sun, 4 Oct 2026 12:36:01 +0000
+Subject: [PATCH] fix(frontend): harden phase 2b auth and connection state
+
+---
+ README.md                                     |  25 ++
+ .../Controllers/UpworkOAuthController.php     |  49 ++--
+ .../app/Services/Upwork/UpworkMcpService.php  |   4 +-
+ backend/routes/api.php                        |   2 +-
+ backend/tests/Feature/AuthApiTest.php         | 126 +++++++++
+ backend/tests/Feature/UpworkOAuthTest.php     |   6 +-
+ backend/tests/Unit/UpworkMcpServiceTest.php   |  18 ++
+ src/app/globals.css                           |   5 +-
+ src/app/layout.tsx                            |   9 +-
+ src/app/not-found.tsx                         |  15 -
+ src/app/page.tsx                              | 110 +++++---
+ src/components/AuthGate.tsx                   |   8 +-
+ .../views/ProfileIntelligenceView.tsx         |  13 +-
+ src/components/views/SettingsView.tsx         |  19 +-
+ src/services/AuthApiService.ts                | 110 +++-----
+ src/services/UpworkApiService.ts              | 260 +++++++-----------
+ src/services/apiClient.ts                     | 104 +++++++
+ 17 files changed, 568 insertions(+), 315 deletions(-)
+ create mode 100644 backend/tests/Feature/AuthApiTest.php
+ delete mode 100644 src/app/not-found.tsx
+ create mode 100644 src/services/apiClient.ts
+
+diff --git a/README.md b/README.md
+index e215bc4..ceec3e1 100644
+--- a/README.md
++++ b/README.md
+@@ -34,3 +34,28 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
+ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+ 
+ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
++
++## Local Development & User Setup
++
++Application authentication uses Laravel session-based Sanctum authentication (`/api/auth/login`). There is intentionally no public registration endpoint.
++
++To create an authorized user for local development:
++
++1. Launch Laravel Tinker in the backend environment:
++   ```bash
++   cd backend
++   php artisan tinker
++   ```
++
++2. Provision an authorized local user with a password chosen locally:
++   ```php
++   User::create([
++       'name' => 'Local Developer',
++       'email' => 'dev@example.com',
++       'password' => Hash::make('your-chosen-local-password'),
++   ]);
++   ```
++
++3. Authenticate via the application Auth Gate UI using your local email and password.
++
++*Security Note: Never commit plain-text passwords or production credentials into repository files or documentation.*
+diff --git a/backend/app/Http/Controllers/UpworkOAuthController.php b/backend/app/Http/Controllers/UpworkOAuthController.php
+index 21a2564..e786636 100644
+--- a/backend/app/Http/Controllers/UpworkOAuthController.php
++++ b/backend/app/Http/Controllers/UpworkOAuthController.php
+@@ -116,26 +116,41 @@ public function handleCallback(
+      */
+     public function disconnect(Request $request): mixed
+     {
+-        $connection = UpworkConnection::active();
+-        if ($connection) {
+-            $connection->update([
+-                'is_active' => false,
+-                'access_token' => '',
+-                'refresh_token' => null,
+-            ]);
+-        }
++        try {
++            $connection = UpworkConnection::active();
++            if ($connection) {
++                $connection->update([
++                    'is_active' => false,
++                    'access_token' => '',
++                    'refresh_token' => null,
++                ]);
++            }
+ 
+-        if ($request->expectsJson() || $request->is('api/*')) {
+-            return response()->json([
+-                'connected' => false,
+-                'message' => 'Upwork account disconnected successfully.',
+-            ]);
+-        }
++            if ($request->expectsJson() || $request->is('api/*')) {
++                return response()->json([
++                    'success' => true,
++                    'connected' => false,
++                    'message' => 'Upwork account disconnected successfully.',
++                ]);
++            }
+ 
+-        $safeReturnTo = $this->sanitizeReturnTo($request->query('return_to'));
+-        $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
++            $safeReturnTo = $this->sanitizeReturnTo($request->query('return_to'));
++            $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
++
++            return redirect($safeReturnTo . $separator . 'upwork_disconnected=1');
++        } catch (Exception $e) {
++            if ($request->expectsJson() || $request->is('api/*')) {
++                return response()->json([
++                    'success' => false,
++                    'message' => 'Failed to disconnect Upwork account.',
++                ], 500);
++            }
+ 
+-        return redirect($safeReturnTo . $separator . 'upwork_disconnected=1');
++            $safeReturnTo = $this->sanitizeReturnTo($request->query('return_to'));
++            $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
++
++            return redirect($safeReturnTo . $separator . 'upwork_error=disconnect_failed');
++        }
+     }
+ 
+     /**
+diff --git a/backend/app/Services/Upwork/UpworkMcpService.php b/backend/app/Services/Upwork/UpworkMcpService.php
+index 6f86a5d..2a6f387 100644
+--- a/backend/app/Services/Upwork/UpworkMcpService.php
++++ b/backend/app/Services/Upwork/UpworkMcpService.php
+@@ -63,8 +63,8 @@ public function connectionStatus(): array
+ 
+         return [
+             'connected' => true,
+-            'accountName' => $connection->account_name ?? 'Freelancer Account',
+-            'role' => $connection->account_role ?? 'Freelancer',
++            'accountName' => $connection->account_name,
++            'role' => $connection->account_role,
+         ];
+     }
+ 
+diff --git a/backend/routes/api.php b/backend/routes/api.php
+index 4710f97..e57d225 100644
+--- a/backend/routes/api.php
++++ b/backend/routes/api.php
+@@ -6,7 +6,7 @@
+ use Illuminate\Support\Facades\Route;
+ 
+ Route::prefix('auth')->group(function () {
+-    Route::post('/login', [AuthController::class, 'login']);
++    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+     Route::middleware('auth:sanctum')->group(function () {
+         Route::get('/me', [AuthController::class, 'me']);
+         Route::post('/logout', [AuthController::class, 'logout']);
+diff --git a/backend/tests/Feature/AuthApiTest.php b/backend/tests/Feature/AuthApiTest.php
+new file mode 100644
+index 0000000..d4d7a22
+--- /dev/null
++++ b/backend/tests/Feature/AuthApiTest.php
+@@ -0,0 +1,126 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Tests\Feature;
++
++use App\Models\User;
++use Illuminate\Foundation\Testing\RefreshDatabase;
++use Illuminate\Support\Facades\Hash;
++use Laravel\Sanctum\Sanctum;
++use Tests\TestCase;
++
++class AuthApiTest extends TestCase
++{
++    use RefreshDatabase;
++
++    public function test_unauthenticated_me_returns_401(): void
++    {
++        $response = $this->getJson('/api/auth/me');
++        $response->assertStatus(401);
++    }
++
++    public function test_login_with_valid_credentials_authenticates_session_and_returns_safe_user(): void
++    {
++        $user = User::factory()->create([
++            'email' => 'engineer@example.com',
++            'password' => Hash::make('SecretPass123!'),
++        ]);
++
++        $response = $this->postJson('/api/auth/login', [
++            'email' => 'engineer@example.com',
++            'password' => 'SecretPass123!',
++        ]);
++
++        $response->assertStatus(200)
++            ->assertJson([
++                'success' => true,
++                'user' => [
++                    'id' => $user->id,
++                    'name' => $user->name,
++                    'email' => 'engineer@example.com',
++                ],
++            ]);
++
++        $response->assertJsonMissing(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes']);
++        $this->assertAuthenticatedAs($user);
++    }
++
++    public function test_login_with_invalid_credentials_is_rejected_and_does_not_authenticate(): void
++    {
++        User::factory()->create([
++            'email' => 'engineer@example.com',
++            'password' => Hash::make('SecretPass123!'),
++        ]);
++
++        $response = $this->postJson('/api/auth/login', [
++            'email' => 'engineer@example.com',
++            'password' => 'WrongPassword!',
++        ]);
++
++        $response->assertStatus(422)
++            ->assertJson([
++                'success' => false,
++            ]);
++
++        $this->assertGuest();
++    }
++
++    public function test_authenticated_me_returns_safe_user_payload(): void
++    {
++        $user = User::factory()->create([
++            'name' => 'Lead Engineer',
++            'email' => 'lead@example.com',
++        ]);
++
++        Sanctum::actingAs($user);
++
++        $response = $this->getJson('/api/auth/me');
++        $response->assertStatus(200)
++            ->assertJson([
++                'success' => true,
++                'user' => [
++                    'id' => $user->id,
++                    'name' => 'Lead Engineer',
++                    'email' => 'lead@example.com',
++                ],
++            ]);
++
++        $response->assertJsonMissing(['password', 'remember_token']);
++    }
++
++    public function test_authenticated_logout_invalidates_session(): void
++    {
++        $user = User::factory()->create();
++        Sanctum::actingAs($user);
++
++        $response = $this->postJson('/api/auth/logout');
++        $response->assertStatus(200)
++            ->assertJson([
++                'success' => true,
++                'message' => 'Signed out successfully.',
++            ]);
++
++        $this->assertGuest();
++    }
++
++    public function test_sensitive_model_fields_and_password_hashes_are_never_exposed(): void
++    {
++        $user = User::factory()->create([
++            'email' => 'secure@example.com',
++            'password' => Hash::make('StrongPass789!'),
++        ]);
++
++        Sanctum::actingAs($user);
++
++        $meResponse = $this->getJson('/api/auth/me');
++        $meData = $meResponse->json('user');
++
++        $this->assertArrayHasKey('id', $meData);
++        $this->assertArrayHasKey('name', $meData);
++        $this->assertArrayHasKey('email', $meData);
++        $this->assertArrayNotHasKey('password', $meData);
++        $this->assertArrayNotHasKey('remember_token', $meData);
++        $this->assertArrayNotHasKey('two_factor_secret', $meData);
++    }
++}
+diff --git a/backend/tests/Feature/UpworkOAuthTest.php b/backend/tests/Feature/UpworkOAuthTest.php
+index 9203062..5a295f0 100644
+--- a/backend/tests/Feature/UpworkOAuthTest.php
++++ b/backend/tests/Feature/UpworkOAuthTest.php
+@@ -60,7 +60,11 @@ public function test_disconnect_requires_authentication_and_deactivates_connecti
+         Sanctum::actingAs(User::factory()->create());
+         $responseAuth = $this->postJson('/api/upwork/disconnect');
+         $responseAuth->assertStatus(200)
+-            ->assertJson(['connected' => false]);
++            ->assertJson([
++                'success' => true,
++                'connected' => false,
++                'message' => 'Upwork account disconnected successfully.',
++            ]);
+ 
+         $this->assertNull(UpworkConnection::active());
+     }
+diff --git a/backend/tests/Unit/UpworkMcpServiceTest.php b/backend/tests/Unit/UpworkMcpServiceTest.php
+index 53cb86f..35cd86e 100644
+--- a/backend/tests/Unit/UpworkMcpServiceTest.php
++++ b/backend/tests/Unit/UpworkMcpServiceTest.php
+@@ -49,6 +49,24 @@ public function test_connection_status_is_connected_with_active_model(): void
+         $this->assertEquals('Freelancer', $status['role']);
+     }
+ 
++    public function test_missing_account_metadata_remains_null(): void
++    {
++        UpworkConnection::create([
++            'provider' => 'upwork',
++            'access_token' => 'active_oauth_token',
++            'account_name' => null,
++            'account_role' => null,
++            'account_status' => 'selected',
++            'is_active' => true,
++        ]);
++
++        $status = $this->service->connectionStatus();
++
++        $this->assertTrue($status['connected']);
++        $this->assertNull($status['accountName']);
++        $this->assertNull($status['role']);
++    }
++
+     public function test_pending_account_sync_is_not_reported_as_connected(): void
+     {
+         UpworkConnection::create([
+diff --git a/src/app/globals.css b/src/app/globals.css
+index 64fc163..90b6d53 100644
+--- a/src/app/globals.css
++++ b/src/app/globals.css
+@@ -1,4 +1,3 @@
+-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+ @import "tailwindcss";
+ 
+ :root {
+@@ -38,14 +37,16 @@ body {
+   width: 6px;
+   height: 6px;
+ }
++
+ ::-webkit-scrollbar-track {
+   background: transparent;
+ }
++
+ ::-webkit-scrollbar-thumb {
+   background: #cbd5e1;
+   border-radius: 3px;
+ }
++
+ ::-webkit-scrollbar-thumb:hover {
+   background: #94a3b8;
+ }
+-
+diff --git a/src/app/layout.tsx b/src/app/layout.tsx
+index 0c7b984..e681d7b 100644
+--- a/src/app/layout.tsx
++++ b/src/app/layout.tsx
+@@ -20,8 +20,15 @@ export default function RootLayout({
+ }) {
+   return (
+     <html lang="en" className={`${inter.variable} h-full`}>
++      <head>
++        <link rel="preconnect" href="https://fonts.googleapis.com" />
++        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
++        <link
++          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
++          rel="stylesheet"
++        />
++      </head>
+       <body className="h-full bg-slate-50 text-slate-900 font-sans antialiased">{children}</body>
+     </html>
+   );
+ }
+-
+diff --git a/src/app/not-found.tsx b/src/app/not-found.tsx
+deleted file mode 100644
+index 539298d..0000000
+--- a/src/app/not-found.tsx
++++ /dev/null
+@@ -1,15 +0,0 @@
+-import Link from 'next/link';
+-
+-export default function NotFound() {
+-  return (
+-    <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-900 p-6">
+-      <div className="max-w-md w-full text-center bg-white p-8 rounded-2xl border border-slate-200 shadow-xs">
+-        <h2 className="text-xl font-bold text-slate-900">404 - Page Not Found</h2>
+-        <p className="text-xs text-slate-500 mt-2">The requested page could not be found.</p>
+-        <Link href="/" className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg">
+-          Return to Dashboard
+-        </Link>
+-      </div>
+-    </div>
+-  );
+-}
+diff --git a/src/app/page.tsx b/src/app/page.tsx
+index a876f1f..8b6a0f7 100644
+--- a/src/app/page.tsx
++++ b/src/app/page.tsx
+@@ -42,41 +42,60 @@ export default function Home() {
+   const [applications, setApplications] = useState<Application[]>([]);
+   const [userProfile, setUserProfile] = useState<UserProfile>(upworkService.getUserProfile());
+ 
+-  // Real Upwork API State
++  // Real Upwork API State & Refresh Status
++  const [refreshState, setRefreshState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+   const [connectionStatus, setConnectionStatus] = useState<UpworkConnectionStatus | null>(null);
+   const [connectsData, setConnectsData] = useState<UpworkConnectsData | null>(null);
+   const [realProfileData, setRealProfileData] = useState<UpworkProfileData | null>(null);
+-  const [syncNotice, setSyncNotice] = useState<string | null>(null);
++  const [syncNotice, setSyncNotice] = useState<{ message: string; type: 'info' | 'error' } | null>(null);
+ 
+   // Derived values for this slice
+   const isConnected = connectionStatus?.connected ?? false;
+-  const availableConnects = connectsData?.available ?? realProfileData?.connectsBalance ?? null;
++  const availableConnects = connectsData?.available ?? realProfileData?.profileSignals?.connectsBalance ?? null;
+   const accountName = connectionStatus?.accountName ?? null;
+ 
+   // Real Upwork Data Fetcher
+   const fetchRealUpworkData = useCallback(async () => {
++    setRefreshState('loading');
+     try {
+-      const [statusRes, connectsRes, profileRes] = await Promise.all([
+-        upworkApiService.getStatus(),
++      const statusRes = await upworkApiService.getStatus();
++
++      if (statusRes.unauthenticated) {
++        setAuthUser(null);
++        setAuthStatus('unauthenticated');
++        setRefreshState('error');
++        return;
++      }
++
++      setConnectionStatus(statusRes);
++
++      const [connectsRes, profileRes] = await Promise.all([
+         upworkApiService.getConnects(),
+         upworkApiService.getProfile(),
+       ]);
+ 
+-      setConnectionStatus(statusRes);
++      if (connectsRes.unauthenticated || profileRes.unauthenticated) {
++        setAuthUser(null);
++        setAuthStatus('unauthenticated');
++        setRefreshState('error');
++        return;
++      }
+ 
+       if (connectsRes.success && connectsRes.data) {
+         setConnectsData(connectsRes.data);
+-      } else {
+-        setConnectsData(null);
+       }
+ 
+       if (profileRes.success && profileRes.data) {
+         setRealProfileData(profileRes.data);
+-      } else {
+-        setRealProfileData(null);
+       }
++
++      setRefreshState('success');
+     } catch {
+-      // Keep state safe
++      setRefreshState('error');
++      setSyncNotice({
++        message: 'Unable to refresh Upwork account data. Please try again.',
++        type: 'error',
++      });
+     }
+   }, []);
+ 
+@@ -114,12 +133,15 @@ export default function Home() {
+     if (typeof window !== 'undefined') {
+       const params = new URLSearchParams(window.location.search);
+       if (params.get('upwork_connected') === '1') {
+-        setSyncNotice('Successfully connected to Upwork!');
++        setSyncNotice({ message: 'Successfully connected to Upwork!', type: 'info' });
+         setTimeout(() => setSyncNotice(null), 4000);
+         window.history.replaceState({}, document.title, window.location.pathname);
+         fetchRealUpworkData();
+       } else if (params.get('upwork_account_selection') === '1') {
+-        setSyncNotice('Upwork account selection is required. Please select your candidate account.');
++        setSyncNotice({
++          message: 'Upwork account selection is required. Please select your candidate account.',
++          type: 'info',
++        });
+         setTimeout(() => setSyncNotice(null), 6000);
+         window.history.replaceState({}, document.title, window.location.pathname);
+         fetchRealUpworkData();
+@@ -134,15 +156,22 @@ export default function Home() {
+   };
+ 
+   const handleLogout = async () => {
+-    await authApiService.logout();
+-    setAuthUser(null);
+-    setAuthStatus('unauthenticated');
++    const res = await authApiService.logout();
++    if (res.success) {
++      setAuthUser(null);
++      setAuthStatus('unauthenticated');
++    } else {
++      setSyncNotice({
++        message: res.error || 'Sign out failed. Please try again.',
++        type: 'error',
++      });
++    }
+   };
+ 
+   // Upwork Connection Handlers
+   const handleSyncUpwork = async () => {
+     await fetchRealUpworkData();
+-    setSyncNotice('Upwork account and profile refreshed.');
++    setSyncNotice({ message: 'Upwork account and profile refreshed.', type: 'info' });
+     setTimeout(() => setSyncNotice(null), 3000);
+   };
+ 
+@@ -153,17 +182,30 @@ export default function Home() {
+   };
+ 
+   const handleDisconnectUpwork = async () => {
+-    await upworkApiService.disconnect();
+-    setConnectionStatus({
+-      connected: false,
+-      accountName: null,
+-      role: null,
+-      status: 'disconnected',
+-    });
+-    setConnectsData(null);
+-    setRealProfileData(null);
+-    setSyncNotice('Upwork account disconnected.');
+-    setTimeout(() => setSyncNotice(null), 3000);
++    const res = await upworkApiService.disconnect();
++    if (res.unauthenticated) {
++      setAuthUser(null);
++      setAuthStatus('unauthenticated');
++      return;
++    }
++
++    if (res.success) {
++      setConnectionStatus({
++        connected: false,
++        accountName: null,
++        role: null,
++        status: 'disconnected',
++      });
++      setConnectsData(null);
++      setRealProfileData(null);
++      setSyncNotice({ message: 'Upwork account disconnected.', type: 'info' });
++      setTimeout(() => setSyncNotice(null), 3000);
++    } else {
++      setSyncNotice({
++        message: res.message || 'Failed to disconnect Upwork account. Please try again.',
++        type: 'error',
++      });
++    }
+   };
+ 
+   // Navigation handlers
+@@ -347,9 +389,15 @@ export default function Home() {
+ 
+         {/* Sync / Action Banner Toast */}
+         {syncNotice && (
+-          <div className="bg-slate-900 text-white text-xs px-8 py-2 flex items-center justify-between shadow-xs">
+-            <span>{syncNotice}</span>
+-            <button onClick={() => setSyncNotice(null)} className="text-slate-400 hover:text-white">✕</button>
++          <div
++            className={`text-xs px-8 py-2 flex items-center justify-between shadow-xs ${
++              syncNotice.type === 'error' ? 'bg-rose-900 text-rose-100' : 'bg-slate-900 text-white'
++            }`}
++          >
++            <span>{syncNotice.message}</span>
++            <button onClick={() => setSyncNotice(null)} className="text-slate-400 hover:text-white cursor-pointer">
++              ✕
++            </button>
+           </div>
+         )}
+ 
+diff --git a/src/components/AuthGate.tsx b/src/components/AuthGate.tsx
+index 5bf1a93..7ef0795 100644
+--- a/src/components/AuthGate.tsx
++++ b/src/components/AuthGate.tsx
+@@ -25,8 +25,12 @@ export function AuthGate({ onLoginSuccess }: AuthGateProps) {
+     setError(null);
+ 
+     try {
+-      const user = await authApiService.login(email, password);
+-      onLoginSuccess(user);
++      const res = await authApiService.login(email, password);
++      if (res.success && res.user) {
++        onLoginSuccess(res.user);
++      } else {
++        setError(res.error || 'Invalid credentials or request failed.');
++      }
+     } catch (err: unknown) {
+       const message = err instanceof Error ? err.message : 'Login failed. Please check credentials.';
+       setError(message);
+diff --git a/src/components/views/ProfileIntelligenceView.tsx b/src/components/views/ProfileIntelligenceView.tsx
+index acf0311..9b4c380 100644
+--- a/src/components/views/ProfileIntelligenceView.tsx
++++ b/src/components/views/ProfileIntelligenceView.tsx
+@@ -181,9 +181,16 @@ export const ProfileIntelligenceView: React.FC<ProfileIntelligenceViewProps> = (
+                 {/* Title & Hourly Rate Header */}
+                 <div>
+                   <div className="flex items-start justify-between gap-2">
+-                    <h3 className="text-sm font-bold text-slate-900 leading-snug">
+-                      {realProfile?.title || connectionStatus?.accountName || '—'}
+-                    </h3>
++                    <div>
++                      <h3 className="text-sm font-bold text-slate-900 leading-snug">
++                        {realProfile?.title ?? '—'}
++                      </h3>
++                      {connectionStatus?.accountName && (
++                        <p className="text-[11px] font-medium text-slate-500 mt-0.5">
++                          {connectionStatus.accountName}
++                        </p>
++                      )}
++                    </div>
+                     <div className="flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap">
+                       <span>{realProfile?.hourlyRate ? `$${realProfile.hourlyRate} / hr` : '—'}</span>
+                     </div>
+diff --git a/src/components/views/SettingsView.tsx b/src/components/views/SettingsView.tsx
+index 4bf5750..7b243df 100644
+--- a/src/components/views/SettingsView.tsx
++++ b/src/components/views/SettingsView.tsx
+@@ -45,17 +45,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
+   const [autoRejectFlagged, setAutoRejectFlagged] = useState(true);
+ 
+   // Status feedback
+-  const [pingStatus, setPingStatus] = useState<string | null>(null);
+   const [savedSuccess, setSavedSuccess] = useState(false);
+ 
+-  const handleTestPing = () => {
+-    setPingStatus('Pinging Upwork MCP gateway...');
+-    setTimeout(() => {
+-      setPingStatus('Pong! 42ms round-trip latency verified. Rate limit healthy.');
+-      setTimeout(() => setPingStatus(null), 3000);
+-    }, 600);
+-  };
+-
+   const handleSave = () => {
+     onUpdateProfile({
+       preferences: {
+@@ -144,7 +135,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
+                 }`}></span>
+               </span>
+               <span className="text-xs font-semibold">
+-                {isConnected ? 'MCP Active & Listening' : 'MCP Offline'}
++                {isConnected ? 'MCP Connected' : 'MCP Offline'}
+               </span>
+             </div>
+           </div>
+@@ -171,7 +162,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
+                   </span>
+                 </div>
+                 <div className="text-[11px] text-slate-500 mt-1.5 flex flex-wrap items-center gap-y-1 gap-x-2">
+-                  <span>Role: <span className="font-medium text-slate-700">{connectionStatus?.role || 'Freelancer'}</span></span>
++                  <span>Role: <span className="font-medium text-slate-700">{connectionStatus?.role || '—'}</span></span>
+                   <span className="text-slate-300">•</span>
+                   <span>Status: <span className="font-medium text-slate-700">{connectionStatus?.status || (connectionStatus?.connected ? 'connected' : 'disconnected')}</span></span>
+                 </div>
+@@ -204,12 +195,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
+               </button>
+             </div>
+           </div>
+-
+-          {pingStatus && (
+-            <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900 font-medium">
+-              {pingStatus}
+-            </div>
+-          )}
+         </div>
+       </div>
+ 
+diff --git a/src/services/AuthApiService.ts b/src/services/AuthApiService.ts
+index f9d20c9..8ce9108 100644
+--- a/src/services/AuthApiService.ts
++++ b/src/services/AuthApiService.ts
+@@ -1,3 +1,5 @@
++import { apiFetch } from './apiClient';
++
+ export interface AuthUser {
+   id: number;
+   name: string;
+@@ -5,92 +7,62 @@ export interface AuthUser {
+ }
+ 
+ export interface AuthResponse {
+-  user: AuthUser;
++  success: boolean;
++  user?: AuthUser;
++  error?: string;
+ }
+ 
+-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+-
+-class AuthApiService {
+-  private baseUrl = API_BASE_URL;
+-
+-  private async getCsrfCookie(): Promise<void> {
+-    try {
+-      await fetch(`${this.baseUrl}/sanctum/csrf-cookie`, {
+-        method: 'GET',
+-        credentials: 'include',
+-      });
+-    } catch {
+-      // Ignore network errors on csrf pre-fetch; actual login request will handle failure if needed
+-    }
+-  }
+-
+-  async login(email: string, password: string): Promise<AuthUser> {
+-    await this.getCsrfCookie();
+-
+-    const response = await fetch(`${this.baseUrl}/api/auth/login`, {
++export class AuthApiService {
++  async login(email: string, password: string): Promise<AuthResponse> {
++    const res = await apiFetch<{ success: boolean; user?: AuthUser; message?: string }>('/api/auth/login', {
+       method: 'POST',
+-      headers: {
+-        'Content-Type': 'application/json',
+-        'Accept': 'application/json',
+-      },
+-      credentials: 'include',
+       body: JSON.stringify({ email, password }),
+     });
+ 
+-    if (!response.ok) {
+-      let errorMsg = 'Invalid email or password credentials.';
+-      try {
+-        const errorData = await response.json();
+-        if (errorData.errors?.email?.[0]) {
+-          errorMsg = errorData.errors.email[0];
+-        } else if (errorData.message) {
+-          errorMsg = errorData.message;
+-        }
+-      } catch {
+-        // Fallback error message
+-      }
+-      throw new Error(errorMsg);
++    if (res.ok && res.data?.success && res.data.user) {
++      return {
++        success: true,
++        user: res.data.user,
++      };
+     }
+ 
+-    const data: AuthResponse = await response.json();
+-    return data.user;
++    return {
++      success: false,
++      error: res.data?.message || res.error || 'Invalid credentials or request error.',
++    };
+   }
+ 
+   async getCurrentUser(): Promise<AuthUser | null> {
+-    try {
+-      const response = await fetch(`${this.baseUrl}/api/auth/me`, {
+-        method: 'GET',
+-        headers: {
+-          'Accept': 'application/json',
+-        },
+-        credentials: 'include',
+-      });
+-
+-      if (!response.ok) {
+-        return null;
+-      }
++    const res = await apiFetch<{ user?: AuthUser }>('/api/auth/me', {
++      method: 'GET',
++      requireCsrf: false,
++    });
+ 
+-      const data: AuthResponse = await response.json();
+-      return data.user;
+-    } catch {
+-      return null;
++    if (res.ok && res.data?.user) {
++      return res.data.user;
+     }
++
++    return null;
+   }
+ 
+-  async logout(): Promise<void> {
+-    await this.getCsrfCookie();
++  async logout(): Promise<AuthResponse> {
++    const res = await apiFetch<AuthResponse>('/api/auth/logout', {
++      method: 'POST',
++    });
+ 
+-    try {
+-      await fetch(`${this.baseUrl}/api/auth/logout`, {
+-        method: 'POST',
+-        headers: {
+-          'Accept': 'application/json',
+-        },
+-        credentials: 'include',
+-      });
+-    } catch {
+-      // Session local clear proceeds regardless
++    if (res.ok) {
++      return { success: true };
+     }
++
++    // 401 means session is already expired/unauthenticated -> effectively logged out
++    if (res.status === 401) {
++      return { success: true };
++    }
++
++    return {
++      success: false,
++      error: 'Sign out failed due to network or server error. Please try again.',
++    };
+   }
+ }
+ 
+diff --git a/src/services/UpworkApiService.ts b/src/services/UpworkApiService.ts
+index 9b09061..e8494d3 100644
+--- a/src/services/UpworkApiService.ts
++++ b/src/services/UpworkApiService.ts
+@@ -1,32 +1,11 @@
++import { apiFetch } from './apiClient';
++
+ export interface UpworkConnectionStatus {
+   connected: boolean;
+   accountName: string | null;
+   role: string | null;
+-  status?: 'pending' | 'selection_required' | 'no_eligible_account' | 'reconnect_required' | string;
+-}
+-
+-export interface UpworkConnectsData {
+-  available: number | null;
+-  membershipType: string | null;
+-}
+-
+-export interface UpworkConnectsResponse {
+-  success: boolean;
+-  data?: UpworkConnectsData;
+-  code?: string;
+-  message?: string;
+-}
+-
+-export interface UpworkPortfolioHighlight {
+-  title: string | null;
+-  description: string | null;
+-  url: string | null;
+-  completionDate: string | null;
+-}
+-
+-export interface UpworkProfileSignals {
+-  jobSuccessScore: number | null;
+-  topRated: boolean | null;
++  status: 'connected' | 'selection_required' | 'no_eligible_account' | 'pending' | 'reconnect_required' | 'disconnected';
++  unauthenticated?: boolean;
+ }
+ 
+ export interface UpworkProfileData {
+@@ -34,167 +13,140 @@ export interface UpworkProfileData {
+   overview: string | null;
+   hourlyRate: string | null;
+   skills: string[];
+-  portfolioHighlights: UpworkPortfolioHighlight[];
+-  connectsBalance: number | null;
+-  profileSignals: UpworkProfileSignals;
++  portfolioHighlights: Array<{
++    id: string;
++    title: string;
++    description: string;
++    outcome?: string;
++  }>;
++  profileSignals: {
++    jobSuccessScore: number | null;
++    topRated: boolean | null;
++    connectsBalance: number | null;
++  };
+ }
+ 
+-export interface UpworkProfileResponse {
+-  success: boolean;
+-  data?: UpworkProfileData;
+-  code?: string;
+-  message?: string;
++export interface UpworkConnectsData {
++  available: number | null;
++  membershipType: string | null;
+ }
+ 
+-export interface UpworkDisconnectResponse {
++export interface ApiResponse<T> {
+   success: boolean;
+-  message: string;
++  data?: T;
++  code?: string;
++  message?: string;
++  unauthenticated?: boolean;
+ }
+ 
+-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+-
+-class UpworkApiService {
+-  private baseUrl = API_BASE_URL;
++export class UpworkApiService {
++  async getStatus(): Promise<UpworkConnectionStatus & { unauthenticated?: boolean }> {
++    const res = await apiFetch<UpworkConnectionStatus>('/api/upwork/status', {
++      method: 'GET',
++      requireCsrf: false,
++    });
+ 
+-  private async getCsrfCookie(): Promise<void> {
+-    try {
+-      await fetch(`${this.baseUrl}/sanctum/csrf-cookie`, {
+-        method: 'GET',
+-        credentials: 'include',
+-      });
+-    } catch {
+-      // Ignore network errors on csrf pre-fetch
+-    }
+-  }
+-
+-  getOAuthConnectUrl(returnTo: string = typeof window !== 'undefined' ? window.location.origin : ''): string {
+-    const encodedReturn = encodeURIComponent(returnTo);
+-    return `${this.baseUrl}/oauth/upwork/connect?return_to=${encodedReturn}`;
+-  }
+-
+-  async getStatus(): Promise<UpworkConnectionStatus> {
+-    try {
+-      const response = await fetch(`${this.baseUrl}/api/upwork/status`, {
+-        method: 'GET',
+-        headers: {
+-          'Accept': 'application/json',
+-        },
+-        credentials: 'include',
+-      });
+-
+-      if (!response.ok) {
+-        return {
+-          connected: false,
+-          accountName: null,
+-          role: null,
+-          status: response.status === 401 ? 'unauthenticated' : 'error',
+-        };
+-      }
+-
+-      const data: UpworkConnectionStatus = await response.json();
+-      return data;
+-    } catch {
++    if (res.status === 401) {
+       return {
+         connected: false,
+         accountName: null,
+         role: null,
+-        status: 'error',
++        status: 'disconnected',
++        unauthenticated: true,
+       };
+     }
++
++    if (res.ok && res.data) {
++      return res.data;
++    }
++
++    return {
++      connected: false,
++      accountName: null,
++      role: null,
++      status: 'disconnected',
++    };
+   }
+ 
+-  async getConnects(): Promise<UpworkConnectsResponse> {
+-    try {
+-      const response = await fetch(`${this.baseUrl}/api/upwork/connects`, {
+-        method: 'GET',
+-        headers: {
+-          'Accept': 'application/json',
+-        },
+-        credentials: 'include',
+-      });
+-
+-      if (!response.ok) {
+-        const errorData = await response.json().catch(() => ({}));
+-        return {
+-          success: false,
+-          code: errorData.code || 'HTTP_ERROR',
+-          message: errorData.message || 'Failed to fetch Upwork connects balance.',
+-        };
+-      }
+-
+-      const data: UpworkConnectsResponse = await response.json();
+-      return data;
+-    } catch (err: unknown) {
+-      const message = err instanceof Error ? err.message : 'Network error while fetching connects balance.';
++  async getProfile(): Promise<ApiResponse<UpworkProfileData>> {
++    const res = await apiFetch<ApiResponse<UpworkProfileData>>('/api/upwork/profile', {
++      method: 'GET',
++      requireCsrf: false,
++    });
++
++    if (res.status === 401) {
+       return {
+         success: false,
+-        code: 'NETWORK_ERROR',
+-        message,
++        message: 'Unauthenticated session.',
++        unauthenticated: true,
+       };
+     }
++
++    if (res.ok && res.data?.success) {
++      return res.data;
++    }
++
++    return {
++      success: false,
++      message: res.data?.message || res.error || 'Failed to fetch profile.',
++    };
+   }
+ 
+-  async getProfile(): Promise<UpworkProfileResponse> {
+-    try {
+-      const response = await fetch(`${this.baseUrl}/api/upwork/profile`, {
+-        method: 'GET',
+-        headers: {
+-          'Accept': 'application/json',
+-        },
+-        credentials: 'include',
+-      });
+-
+-      if (!response.ok) {
+-        const errorData = await response.json().catch(() => ({}));
+-        return {
+-          success: false,
+-          code: errorData.code || 'HTTP_ERROR',
+-          message: errorData.message || 'Failed to fetch Upwork profile data.',
+-        };
+-      }
+-
+-      const data: UpworkProfileResponse = await response.json();
+-      return data;
+-    } catch (err: unknown) {
+-      const message = err instanceof Error ? err.message : 'Network error while fetching profile data.';
++  async getConnects(): Promise<ApiResponse<UpworkConnectsData>> {
++    const res = await apiFetch<ApiResponse<UpworkConnectsData>>('/api/upwork/connects', {
++      method: 'GET',
++      requireCsrf: false,
++    });
++
++    if (res.status === 401) {
+       return {
+         success: false,
+-        code: 'NETWORK_ERROR',
+-        message,
++        message: 'Unauthenticated session.',
++        unauthenticated: true,
+       };
+     }
++
++    if (res.ok && res.data?.success) {
++      return res.data;
++    }
++
++    return {
++      success: false,
++      message: res.data?.message || res.error || 'Failed to fetch connects.',
++    };
+   }
+ 
+-  async disconnect(): Promise<UpworkDisconnectResponse> {
+-    await this.getCsrfCookie();
+-
+-    try {
+-      const response = await fetch(`${this.baseUrl}/api/upwork/disconnect`, {
+-        method: 'POST',
+-        headers: {
+-          'Accept': 'application/json',
+-          'Content-Type': 'application/json',
+-        },
+-        credentials: 'include',
+-      });
+-
+-      if (!response.ok) {
+-        const errorData = await response.json().catch(() => ({}));
+-        return {
+-          success: false,
+-          message: errorData.message || 'Failed to disconnect Upwork account.',
+-        };
+-      }
+-
+-      const data: UpworkDisconnectResponse = await response.json();
+-      return data;
+-    } catch (err: unknown) {
+-      const message = err instanceof Error ? err.message : 'Network error during disconnect.';
++  async disconnect(): Promise<{ success: boolean; connected?: boolean; message?: string; unauthenticated?: boolean }> {
++    const res = await apiFetch<{ success: boolean; connected: boolean; message?: string }>('/api/upwork/disconnect', {
++      method: 'POST',
++    });
++
++    if (res.status === 401) {
+       return {
+         success: false,
+-        message,
++        message: 'Unauthenticated session.',
++        unauthenticated: true,
++      };
++    }
++
++    if (res.ok && res.data?.success === true) {
++      return {
++        success: true,
++        connected: false,
++        message: res.data.message || 'Upwork account disconnected successfully.',
+       };
+     }
++
++    return {
++      success: false,
++      message: res.data?.message || res.error || 'Failed to disconnect Upwork account.',
++    };
++  }
++
++  getOAuthConnectUrl(): string {
++    if (typeof window === 'undefined') return '/oauth/upwork/connect';
++    const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
++    return `/oauth/upwork/connect?return_to=${returnTo}`;
+   }
+ }
+ 
+diff --git a/src/services/apiClient.ts b/src/services/apiClient.ts
+new file mode 100644
+index 0000000..d30377c
+--- /dev/null
++++ b/src/services/apiClient.ts
+@@ -0,0 +1,104 @@
++function getXsrfToken(): string | null {
++  if (typeof document === 'undefined') return null;
++  const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
++  if (!match) return null;
++  try {
++    return decodeURIComponent(match[1]);
++  } catch {
++    return match[1];
++  }
++}
++
++export async function ensureCsrfCookie(): Promise<boolean> {
++  try {
++    const res = await fetch('/sanctum/csrf-cookie', {
++      method: 'GET',
++      credentials: 'include',
++      headers: {
++        Accept: 'application/json',
++      },
++    });
++    return res.ok;
++  } catch {
++    return false;
++  }
++}
++
++export interface ApiFetchOptions extends RequestInit {
++  requireCsrf?: boolean;
++}
++
++export async function apiFetch<T = any>(
++  url: string,
++  options: ApiFetchOptions = {}
++): Promise<{ ok: boolean; status: number; data: T | null; error?: string }> {
++  const method = (options.method || 'GET').toUpperCase();
++  const isStateChanging = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
++  const requireCsrf = options.requireCsrf ?? isStateChanging;
++
++  const headers: Record<string, string> = {
++    Accept: 'application/json',
++  };
++
++  if (options.body && typeof options.body === 'string') {
++    headers['Content-Type'] = 'application/json';
++  }
++
++  if (requireCsrf) {
++    let token = getXsrfToken();
++    if (!token) {
++      const csrfSuccess = await ensureCsrfCookie();
++      if (!csrfSuccess) {
++        return {
++          ok: false,
++          status: 0,
++          data: null,
++          error: 'CSRF initialization failed.',
++        };
++      }
++      token = getXsrfToken();
++    }
++
++    if (!token) {
++      return {
++        ok: false,
++        status: 0,
++        data: null,
++        error: 'XSRF-TOKEN cookie not found.',
++      };
++    }
++
++    headers['X-XSRF-TOKEN'] = token;
++  }
++
++  try {
++    const response = await fetch(url, {
++      ...options,
++      credentials: 'include',
++      headers: {
++        ...headers,
++        ...options.headers,
++      },
++    });
++
++    let data: T | null = null;
++    const contentType = response.headers.get('content-type');
++    if (contentType && contentType.includes('application/json')) {
++      data = await response.json();
++    }
++
++    return {
++      ok: response.ok,
++      status: response.status,
++      data,
++      error: response.ok ? undefined : (data as any)?.message || `HTTP ${response.status}`,
++    };
++  } catch (e: any) {
++    return {
++      ok: false,
++      status: 0,
++      data: null,
++      error: e?.message || 'Network error occurred.',
++    };
++  }
++}
+-- 
+2.34.1
+

@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
 import { UserProfile } from '../../types';
+import { UpworkConnectionStatus, UpworkConnectsData, UpworkProfileData } from '../../services/UpworkApiService';
 
 interface SettingsViewProps {
   profile: UserProfile;
   isConnected: boolean;
+  connectionStatus?: UpworkConnectionStatus | null;
+  connectsData?: UpworkConnectsData | null;
+  realProfile?: UpworkProfileData | null;
   onRefreshConnection: () => void;
+  onConnectOAuth?: () => void;
+  onDisconnectUpwork?: () => void;
   onToggleDisconnect: () => void;
   onUpdateProfile: (updated: Partial<UserProfile>) => void;
 }
@@ -12,7 +18,12 @@ interface SettingsViewProps {
 export const SettingsView: React.FC<SettingsViewProps> = ({
   profile,
   isConnected,
+  connectionStatus,
+  connectsData,
+  realProfile,
   onRefreshConnection,
+  onConnectOAuth,
+  onDisconnectUpwork,
   onToggleDisconnect,
   onUpdateProfile,
 }) => {
@@ -34,16 +45,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [autoRejectFlagged, setAutoRejectFlagged] = useState(true);
 
   // Status feedback
-  const [pingStatus, setPingStatus] = useState<string | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
-
-  const handleTestPing = () => {
-    setPingStatus('Pinging Upwork MCP gateway...');
-    setTimeout(() => {
-      setPingStatus('Pong! 42ms round-trip latency verified. Rate limit healthy.');
-      setTimeout(() => setPingStatus(null), 3000);
-    }, 600);
-  };
 
   const handleSave = () => {
     onUpdateProfile({
@@ -133,7 +135,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 }`}></span>
               </span>
               <span className="text-xs font-semibold">
-                {isConnected ? 'MCP Active & Listening' : 'MCP Offline'}
+                {isConnected ? 'MCP Connected' : 'MCP Offline'}
               </span>
             </div>
           </div>
@@ -148,18 +150,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-900">Alex Rivera (Freelancer Account)</span>
+                  <span className="text-xs font-semibold text-slate-900">
+                    {connectionStatus?.accountName || 'No account connected'}
+                  </span>
                   <span className="text-slate-300">•</span>
                   <span className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                    <span className="material-symbols-outlined text-[13px]">toll</span> 147 Connects Available
+                    <span className="material-symbols-outlined text-[13px]">toll</span>
+                    {connectsData?.available !== null && connectsData?.available !== undefined
+                      ? `${connectsData.available} Connects Available`
+                      : '— Connects'}
                   </span>
                 </div>
                 <div className="text-[11px] text-slate-500 mt-1.5 flex flex-wrap items-center gap-y-1 gap-x-2">
-                  <span>Last handshake: <span className="font-medium text-slate-700">2 mins ago</span></span>
+                  <span>Role: <span className="font-medium text-slate-700">{connectionStatus?.role || '—'}</span></span>
                   <span className="text-slate-300">•</span>
-                  <span>Latency: <span className="font-medium text-slate-700">42ms</span></span>
-                  <span className="text-slate-300">•</span>
-                  <span>Rate Limit: <span className="font-medium text-green-700">98% remaining</span></span>
+                  <span>Status: <span className="font-medium text-slate-700">{connectionStatus?.status || (connectionStatus?.connected ? 'connected' : 'disconnected')}</span></span>
                 </div>
               </div>
             </div>
@@ -175,20 +180,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <span>Refresh Connection</span>
               </button>
               <button
-                onClick={handleTestPing}
-                type="button"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg shadow-2xs transition-colors cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[15px] text-slate-500">sensors</span>
-                <span>Test MCP Ping</span>
-              </button>
-              <button
-                onClick={onToggleDisconnect}
+                onClick={isConnected ? onDisconnectUpwork : onConnectOAuth}
                 type="button"
                 className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
                   isConnected
-                    ? 'text-red-600 hover:text-red-700 hover:bg-red-50'
-                    : 'text-emerald-700 hover:bg-emerald-50'
+                    ? 'text-red-600 hover:text-red-700 hover:bg-red-50 bg-white border border-red-200'
+                    : 'text-white bg-blue-600 hover:bg-blue-700'
                 }`}
               >
                 <span className="material-symbols-outlined text-[16px]">
@@ -198,12 +195,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </button>
             </div>
           </div>
-
-          {pingStatus && (
-            <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900 font-medium">
-              {pingStatus}
-            </div>
-          )}
         </div>
       </div>
 

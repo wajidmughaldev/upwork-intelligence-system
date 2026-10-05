@@ -3,11 +3,14 @@ import { NavItem } from './AppSidebar';
 
 interface AppHeaderProps {
   currentTab: NavItem;
-  availableConnects: number;
+  availableConnects: number | null;
   isConnected: boolean;
+  accountName?: string | null;
+  userEmail?: string | null;
   onRefreshConnects?: () => void;
   onQuickMatch?: () => void;
   onOpenSettings?: () => void;
+  onLogout?: () => void;
   searchQuery?: string;
   onSearchChange?: (q: string) => void;
 }
@@ -16,13 +19,27 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   currentTab,
   availableConnects,
   isConnected,
+  accountName,
+  userEmail,
   onRefreshConnects,
   onQuickMatch,
   onOpenSettings,
+  onLogout,
   searchQuery = '',
   onSearchChange,
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const getInitials = (name?: string | null, email?: string | null): string => {
+    const src = name || email || '';
+    if (!src.trim()) return 'OI';
+    const parts = src.trim().split(/[\s@]+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  };
+
+  const userInitials = getInitials(accountName, userEmail);
 
   // Tab Breadcrumbs mapping matching Stitch
   const getBreadcrumbs = () => {
@@ -85,7 +102,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-medium hover:bg-blue-100 transition-colors cursor-pointer"
         >
           <span className="material-symbols-outlined text-[15px] text-blue-600">toll</span>
-          <span>{availableConnects} Connects</span>
+          <span>{availableConnects !== null ? `${availableConnects} Connects` : '— Connects'}</span>
         </button>
 
         {/* Connected Status Badge */}
@@ -143,11 +160,36 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <span className="material-symbols-outlined text-[20px]">tune</span>
         </button>
 
-        {/* User Avatar */}
-        <div className="pl-2 border-l border-slate-200">
-          <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs ring-1 ring-slate-300">
-            AR
-          </div>
+        {/* User Avatar & Logout Dropdown */}
+        <div className="relative pl-2 border-l border-slate-200">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs ring-1 ring-slate-300 hover:opacity-90 transition-opacity cursor-pointer"
+            title={accountName || userEmail || 'User Menu'}
+          >
+            {userInitials}
+          </button>
+
+          {showUserMenu && (
+            <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 p-2 z-50 text-xs">
+              <div className="px-3 py-2 border-b border-slate-100">
+                <p className="font-semibold text-slate-900 truncate">{accountName || 'Authenticated User'}</p>
+                {userEmail && <p className="text-[11px] text-slate-500 truncate mt-0.5">{userEmail}</p>}
+              </div>
+              {onLogout && (
+                <button
+                  onClick={() => {
+                    setShowUserMenu(false);
+                    onLogout();
+                  }}
+                  className="w-full text-left mt-1 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 font-medium transition-colors cursor-pointer flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[16px]">logout</span>
+                  <span>Sign Out of Engine</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </header>
