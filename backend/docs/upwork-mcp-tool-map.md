@@ -53,9 +53,9 @@ All tools are self-describing via Upwork's MCP server discovery and `get_tool_he
 | **Classification** | **READ-ONLY** |
 | **Description** | Marketplace job discovery, keyword and filter search, single job detail lookup, and AI smart recommendation feed. |
 | **Actions** | <ul><li>`search`: Filtered search across title, description, skills, budget, and client signals.</li><li>`get`: Fetch complete, untruncated details for a single job posting.</li><li>`smart_search`: Personalized recommendations ranked by profile fit (`mode: best_match` or `mode: most_recent`).</li></ul> |
-| **Important Parameters** | <ul><li>`action` (string, required): `search` \| `get` \| `smart_search`</li><li>`org_uid` (string, required): Talent `org_uid`.</li><li>`params` (object, required):<ul><li>For `search`: `query` (string), `skills` (string[], max 5), `category` (string), `job_type` (`fixed` \| `hourly`), `budget_min`, `budget_max`, `rate_min`, `rate_max`, `experience_level` (`entry_level` \| `intermediate` \| `expert`), `verified_payment_only` (bool), `limit` (int, 1-10, default 10).</li><li>For `get`: `id` or `job_id` (numeric ID or `~02...` ciphertext reference).</li><li>For `smart_search`: `mode` (`best_match` \| `most_recent`), `limit` (int, 1-10).</li></ul></li></ul> |
-| **Identifier Expectations** | <ul><li>Returns **both** numeric job IDs and `~02...` ciphertext references.</li><li>`find_jobs action=get` accepts either form transparently.</li><li>Both identifiers are normalized and preserved for proposal workflows.</li></ul> |
-| **Response Fields Needed** | `id`, `ciphertext`, `title`, `description`, `category`, `job_type`, `budget`, `hourly_rate`, `skills`, `experience_level`, `connects_required`, `client` (`rating`, `total_spent`, `hire_rate`, `location`, `verified_payment`), `screening_questions`. |
+| **Important Parameters** | <ul><li>`action` (string, required): `search` \| `get` \| `smart_search`</li><li>`org_uid` (string, required): Talent `org_uid`.</li><li>`params` (object, required):<ul><li>For `search`: `query` (string, optional), `skills` (string[], max 5), `category` (category name or ontology ID), `job_type` (`fixed` \| `hourly`), `budget_min`, `budget_max`, `rate_min`, `rate_max`, `experience_level` (`entry_level` \| `intermediate` \| `expert`), `verified_payment_only` (bool), `include_full_details` (bool), `limit` (int, 1-10, default 10).</li><li>For `get`: `id` or `job_id` (numeric ID, `~02...` ciphertext reference, or full Upwork job URL). The backend public API still accepts only `~02...` references for detail requests.</li><li>For `smart_search`: `mode` (`best_match` \| `most_recent`), `limit` (int, 1-10).</li></ul></li></ul> |
+| **Identifier Expectations** | <ul><li>Live results can include numeric `id`, `numeric_id`, null `ciphertext`, and a job `url` containing the public `~02...` reference.</li><li>`find_jobs action=get` accepts numeric IDs, `~02...`, or full URLs internally.</li><li>Frontend-facing DTOs expose only safe `~02...` references; numeric IDs remain server-side and are never returned by public API responses.</li></ul> |
+| **Response Fields Needed** | `title`, `description`, `description_snippet`, `published_date`, `created_date`, `url`, `ciphertext`, `job_type`, `budget`, `hourly_rate`, `skills`, `experience_level`, `connects_required`, `client` (`rating`, `total_spent`, `hire_rate`, `location`, `country`, `verification_status`, `verified_payment`), `screening_questions`. |
 
 ---
 
@@ -107,11 +107,11 @@ The following tools are part of the official Upwork MCP server but **strictly gu
 
 Upwork returns two distinct job identifiers:
 1. **Ciphertext Reference:** Starts with `~02...` (e.g. `~02189a7f34c2b98e71`). Used in web URLs and job browsing.
-2. **Numeric Job ID:** 64-bit integer formatted as string (e.g. `1849204918239019283`). Required for proposal drafts and submissions.
+2. **Numeric Job ID:** 64-bit integer formatted as string (e.g. `1849204918239019283`). Internal only for this app slice.
 
-`UpworkMcpService` automatically inspects all job objects in responses and guarantees both attributes are present:
+`UpworkMcpService` inspects all job objects in responses and preserves source identifiers internally where available:
 ```php
 $job['ciphertext'] = '~02...';
 $job['numeric_id'] = '1849...';
 ```
-If an identifier is unavailable from an endpoint, it gracefully degrades without breaking API contracts.
+If an endpoint returns a URL but no ciphertext field, the public mapper extracts a safe `~02...` reference from that URL. If no safe `~02...` reference exists, the public reference is `null`. Numeric IDs are not exposed in frontend DTOs.

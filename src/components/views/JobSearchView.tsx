@@ -384,13 +384,8 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated 
               <option value="fixed">Fixed Price Only</option>
               <option value="hourly">Hourly Rate Only</option>
             </select>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full text-xs px-3 py-1.5 bg-white rounded-lg border border-slate-200 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600 cursor-pointer">
-              <option value="all">All Categories</option>
-              <option value="fullstack">Full-Stack Development</option>
-              <option value="backend">Backend Development</option>
-              <option value="frontend">Frontend Development</option>
-              <option value="mobile">Mobile Development</option>
-              <option value="ai">AI &amp; Machine Learning</option>
+            <select value={category} onChange={(e) => setCategory(e.target.value)} disabled className="w-full text-xs px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200 text-slate-400 focus:outline-none cursor-not-allowed">
+              <option value="all">Category mapping pending</option>
             </select>
             <input type="text" value={minBudget} onChange={(e) => setMinBudget(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void runSearch(); }} placeholder="Minimum budget" className="w-full text-xs px-3 py-1.5 bg-white rounded-lg border border-slate-200 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600" />
           </div>

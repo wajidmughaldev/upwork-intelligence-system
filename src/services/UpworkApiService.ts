@@ -81,7 +81,6 @@ export interface UpworkJobDetail {
 export interface UpworkSearchParams {
   query?: string;
   skills?: string[];
-  category?: string;
   job_type?: 'fixed' | 'hourly';
   budget_min?: number;
   budget_max?: number;
@@ -238,7 +237,6 @@ export class UpworkApiService {
   async searchJobs(filters: UpworkSearchParams): Promise<ApiResponse<UpworkJobSearchData>> {
     const params = new URLSearchParams();
     if (filters.query) params.set('query', filters.query);
-    if (filters.category) params.set('category', filters.category);
     if (filters.job_type) params.set('job_type', filters.job_type);
     if (filters.budget_min !== undefined) params.set('budget_min', String(filters.budget_min));
     if (filters.budget_max !== undefined) params.set('budget_max', String(filters.budget_max));

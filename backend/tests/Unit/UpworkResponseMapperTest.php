@@ -257,6 +257,193 @@ class UpworkResponseMapperTest extends TestCase
         $this->assertNull(UpworkResponseMapper::mapJobSearchResults($jobEmpty)['jobs'][0]['reference']);
     }
 
+    public function test_maps_live_profile_payload_without_private_ids(): void
+    {
+        $mapped = UpworkResponseMapper::mapProfile([
+            'data' => [
+                'personId' => 'person-secret',
+                'identity' => [
+                    'id' => 'identity-secret',
+                    'ciphertext' => 'identity-cipher-secret',
+                ],
+                'personalData' => [
+                    'title' => 'Live Laravel Consultant',
+                    'description' => 'Source backed profile overview.',
+                    'chargeRate' => [
+                        'currency' => 'USD',
+                        'displayValue' => '$42.00/hr',
+                        'rawValue' => '42.00',
+                    ],
+                ],
+                'profileAggregates' => [
+                    'top_rated' => 'false',
+                ],
+                'skills' => [
+                    ['id' => 'skill-secret-1', 'prettyName' => 'Laravel', 'skill' => 'laravel'],
+                    ['skill' => 'React'],
+                    'TypeScript',
+                ],
+            ],
+        ], [], [
+            'balance' => [
+                'connectsBalance' => 123,
+                'organizationId' => 'org-secret',
+            ],
+        ]);
+
+        $this->assertSame('Live Laravel Consultant', $mapped['title']);
+        $this->assertSame('Source backed profile overview.', $mapped['overview']);
+        $this->assertSame('$42.00/hr', $mapped['hourlyRate']);
+        $this->assertSame(['Laravel', 'React', 'TypeScript'], $mapped['skills']);
+        $this->assertSame(123, $mapped['connectsBalance']);
+        $this->assertFalse($mapped['profileSignals']['topRated']);
+        $this->assertNull($mapped['profileSignals']['jobSuccessScore']);
+
+        $json = json_encode($mapped);
+        $this->assertStringNotContainsString('person-secret', $json);
+        $this->assertStringNotContainsString('identity-secret', $json);
+        $this->assertStringNotContainsString('identity-cipher-secret', $json);
+        $this->assertStringNotContainsString('skill-secret-1', $json);
+        $this->assertStringNotContainsString('org-secret', $json);
+    }
+
+    public function test_maps_live_connects_balance_without_organization_id(): void
+    {
+        $mapped = UpworkResponseMapper::mapConnects([
+            'balance' => [
+                'connectsBalance' => 77,
+                'connectsBalanceFree' => 1,
+                'connectsBalancePaid' => 76,
+                'organizationId' => 'org-secret',
+                'rolloverBalance' => 4,
+            ],
+        ]);
+
+        $this->assertSame(77, $mapped['available']);
+        $this->assertNull($mapped['membershipType']);
+        $this->assertStringNotContainsString('org-secret', json_encode($mapped));
+    }
+
+    public function test_maps_live_job_payload_from_url_and_source_backed_fields(): void
+    {
+        $mapped = UpworkResponseMapper::mapJobSearchResults([
+            'jobs' => [
+                [
+                    'id' => '1849204918239019283',
+                    'numeric_id' => '1849204918239019283',
+                    'ciphertext' => null,
+                    'url' => 'https://www.upwork.com/jobs/~02abcdef1234567890',
+                    'title' => 'Live Laravel Job',
+                    'description_snippet' => 'Need Laravel support.',
+                    'job_type' => 'hourly',
+                    'published_date' => '2026-10-10T10:00:00Z',
+                    'created_date' => '2026-10-09T10:00:00Z',
+                    'skills' => ['Laravel', ['id' => 'skill-id', 'name' => 'Ignored']],
+                    'client' => [
+                        'country' => 'United States',
+                        'verification_status' => 'VERIFIED',
+                    ],
+                ],
+            ],
+        ]);
+
+        $job = $mapped['jobs'][0];
+
+        $this->assertSame('~02abcdef1234567890', $job['reference']);
+        $this->assertSame('2026-10-10T10:00:00Z', $job['postedTime']);
+        $this->assertTrue($job['client']['paymentVerified']);
+        $this->assertSame('United States', $job['client']['location']);
+        $this->assertSame(['Laravel'], $job['skills']);
+        $this->assertNull($job['connectsRequired']);
+
+        $json = json_encode($mapped);
+        $this->assertStringNotContainsString('1849204918239019283', $json);
+        $this->assertStringNotContainsString('skill-id', $json);
+    }
+
+    public function test_maps_live_nested_job_detail_payload(): void
+    {
+        $mapped = UpworkResponseMapper::mapJobDetail([
+            'ciphertext' => '~02detailref',
+            'connects_cost' => 12,
+            'client_record' => [
+                'country' => 'Canada',
+                'verification_status' => 'UNVERIFIED',
+            ],
+            'data' => [
+                'marketplaceJobPosting' => [
+                    'id' => '1849204918239019283',
+                    'url' => 'https://www.upwork.com/jobs/~02detailref',
+                    'content' => [
+                        'title' => 'Nested Detail Title',
+                        'description' => 'Nested detail description.',
+                    ],
+                    'contractTerms' => [
+                        'contractType' => 'FIXED_PRICE',
+                        'experienceLevel' => 'expert',
+                    ],
+                    'clientCompanyPublic' => [
+                        'id' => 'client-secret',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertSame('~02detailref', $mapped['reference']);
+        $this->assertSame('Nested Detail Title', $mapped['title']);
+        $this->assertSame('Nested detail description.', $mapped['description']);
+        $this->assertSame('fixed', $mapped['jobType']);
+        $this->assertSame('expert', $mapped['experienceLevel']);
+        $this->assertFalse($mapped['client']['paymentVerified']);
+        $this->assertSame('Canada', $mapped['client']['location']);
+
+        $json = json_encode($mapped);
+        $this->assertStringNotContainsString('1849204918239019283', $json);
+        $this->assertStringNotContainsString('client-secret', $json);
+    }
+
+    public function test_live_job_reference_resolution_rejects_numeric_and_unsafe_text(): void
+    {
+        $mapped = UpworkResponseMapper::mapJobSearchResults([
+            'jobs' => [
+                ['ciphertext' => '~02directcipher'],
+                ['id' => '~02directid'],
+                ['url' => 'https://www.upwork.com/jobs/~02urlonly'],
+                ['id' => '1849204918239019283', 'numeric_id' => '1849204918239019283'],
+                ['url' => 'https://example.com/jobs/123456789'],
+                ['url' => 'https://example.com/jobs/foo~02unsafe'],
+            ],
+        ]);
+
+        $this->assertSame('~02directcipher', $mapped['jobs'][0]['reference']);
+        $this->assertSame('~02directid', $mapped['jobs'][1]['reference']);
+        $this->assertSame('~02urlonly', $mapped['jobs'][2]['reference']);
+        $this->assertNull($mapped['jobs'][3]['reference']);
+        $this->assertNull($mapped['jobs'][4]['reference']);
+        $this->assertNull($mapped['jobs'][5]['reference']);
+    }
+
+    public function test_unknown_live_boolean_strings_stay_null(): void
+    {
+        $profile = UpworkResponseMapper::mapProfile([
+            'data' => [
+                'profileAggregates' => ['top_rated' => 'maybe'],
+            ],
+        ]);
+
+        $jobs = UpworkResponseMapper::mapJobSearchResults([
+            'jobs' => [
+                [
+                    'ciphertext' => '~02payment',
+                    'client' => ['verification_status' => 'PENDING_REVIEW'],
+                ],
+            ],
+        ]);
+
+        $this->assertNull($profile['profileSignals']['topRated']);
+        $this->assertNull($jobs['jobs'][0]['client']['paymentVerified']);
+    }
+
     public function test_proposal_and_invitation_internal_ids_are_absent_from_public_dto(): void
     {
         $rawProposals = [
