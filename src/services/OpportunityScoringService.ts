@@ -66,33 +66,69 @@ const SKILL_ALIASES: Record<string, string> = {
   js: 'javascript',
   ts: 'typescript',
   nodejs: 'node',
+  'node js': 'node',
   next: 'nextjs',
   'next js': 'nextjs',
   reactjs: 'react',
+  'react js': 'react',
   vuejs: 'vue',
+  'vue js': 'vue',
 };
 
-function normalizeSkill(value: string): string {
+const GENERIC_PORTFOLIO_TERMS = new Set([
+  'developer',
+  'development',
+  'engineer',
+  'website',
+  'web',
+  'application',
+  'app',
+  'project',
+]);
+
+function normalizeText(value: string): string {
   const normalized = value
     .toLowerCase()
     .replace(/\b\d+(\.\d+)*\b/g, '')
-    .replace(/[^a-z0-9+#\s]/g, '')
+    .replace(/[^a-z0-9+#\s]/g, ' ')
+    .replace(/\bnext\s+js\b/g, 'nextjs')
+    .replace(/\bnode\s+js\b/g, 'node')
+    .replace(/\breact\s+js\b/g, 'react')
+    .replace(/\bvue\s+js\b/g, 'vue')
     .replace(/\s+/g, ' ')
     .trim();
 
   return SKILL_ALIASES[normalized] ?? normalized;
 }
 
+function normalizeSkill(value: string): string {
+  return normalizeText(value);
+}
+
 function normalizedWords(value: string | null | undefined): Set<string> {
-  return new Set(
-    (value ?? '')
-      .toLowerCase()
-      .replace(/[^a-z0-9+#\s]/g, ' ')
-      .replace(/\b\d+(\.\d+)*\b/g, '')
-      .split(/\s+/)
-      .map((word) => SKILL_ALIASES[word] ?? word)
-      .filter(Boolean)
-  );
+  return new Set(normalizeText(value ?? '').split(/\s+/).filter(Boolean));
+}
+
+function phraseMatchesText(phrase: string, text: string): boolean {
+  const normalizedPhrase = normalizeText(phrase);
+  const normalizedText = normalizeText(text);
+
+  if (!normalizedPhrase || !normalizedText) return false;
+
+  const aliases = new Set([normalizedPhrase, SKILL_ALIASES[normalizedPhrase] ?? normalizedPhrase]);
+  for (const candidate of aliases) {
+    const escaped = candidate.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+    if (new RegExp(`(^|\\s)${escaped}(?=\\s|$)`).test(normalizedText)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function meaningfulTitleTerms(title: string | null): string[] {
+  return [...normalizedWords(title)]
+    .filter((term) => term.length > 2 && !GENERIC_PORTFOLIO_TERMS.has(term));
 }
 
 function parseMoney(value: string | null | undefined): number | null {
@@ -186,8 +222,7 @@ export const opportunityScoringService = {
           )
         : empty(WEIGHTS.technicalMatch, 'Job skills or real profile skills are unavailable.');
 
-    const profileWords = normalizedWords(profileText);
-    const experienceHits = jobSkills.filter((skill) => profileWords.has(skill));
+    const experienceHits = jobSkills.filter((skill) => phraseMatchesText(skill, profileText));
     const relevantExperience =
       profileText.length > 0 && jobSkills.length > 0
         ? item(
@@ -204,10 +239,10 @@ export const opportunityScoringService = {
           );
 
     const portfolio = profile?.portfolioHighlights ?? [];
-    const relevanceTerms = new Set([...jobSkills, ...normalizedWords(job.title)]);
+    const relevanceTerms = jobSkills.length ? jobSkills : meaningfulTitleTerms(job.title);
     const relevantHighlights = portfolio.filter((highlight) => {
-      const words = normalizedWords(`${highlight.title ?? ''} ${highlight.description ?? ''}`);
-      return [...relevanceTerms].some((term) => words.has(term));
+      const text = `${highlight.title ?? ''} ${highlight.description ?? ''}`;
+      return relevanceTerms.some((term) => phraseMatchesText(term, text));
     }).length;
     const portfolioProof = portfolio.length
       ? item(
