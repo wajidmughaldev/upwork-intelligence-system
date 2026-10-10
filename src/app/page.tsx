@@ -454,6 +454,7 @@ export default function Home() {
 
           {currentTab === 'jobs' && (
             <JobSearchView
+              realProfileData={realProfileData}
               onUnauthenticated={() => {
                 setAuthUser(null);
                 setAuthStatus('unauthenticated');

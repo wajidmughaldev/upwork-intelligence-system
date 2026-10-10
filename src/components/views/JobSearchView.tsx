@@ -1,13 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   upworkApiService,
   UpworkJobDetail,
   UpworkJobSearchData,
   UpworkJobSummary,
+  UpworkProfileData,
   UpworkSearchParams,
 } from '../../services/UpworkApiService';
+import { opportunityScoringService, OpportunityAnalysis } from '../../services/OpportunityScoringService';
 
 interface JobSearchViewProps {
+  realProfileData: UpworkProfileData | null;
   onUnauthenticated: () => void;
 }
 
@@ -62,7 +65,7 @@ function detailToSummary(detail: UpworkJobDetail): UpworkJobSummary {
   };
 }
 
-export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated }) => {
+export const JobSearchView: React.FC<JobSearchViewProps> = ({ realProfileData, onUnauthenticated }) => {
   const [activeSegment, setActiveSegment] = useState<Segment>('recommended');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [sortBy, setSortBy] = useState('best_match');
@@ -97,27 +100,6 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated 
   const [detailError, setDetailError] = useState<string | null>(null);
   const itemsPerPage = 5;
 
-  useEffect(() => {
-    setSavedRefs(loadRefs('uoi_saved_upwork_job_refs'));
-    setSkippedRefs(loadRefs('uoi_skipped_upwork_job_refs'));
-    void loadRecommended();
-  }, []);
-
-  useEffect(() => {
-    if (activeSegment !== 'saved') return;
-    savedRefs
-      .filter((ref) => !seenJobsByReference[ref])
-      .forEach((ref) => {
-        void upworkApiService.getJobDetail(ref).then((res) => {
-          if (res.success && res.data) {
-            rememberJobs([detailToSummary(res.data)]);
-          } else if (res.unauthenticated) {
-            onUnauthenticated();
-          }
-        });
-      });
-  }, [activeSegment, savedRefs, seenJobsByReference]);
-
   const updateSavedRefs = (refs: string[]) => {
     setSavedRefs(refs);
     saveRefs('uoi_saved_upwork_job_refs', refs);
@@ -128,7 +110,7 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated 
     saveRefs('uoi_skipped_upwork_job_refs', refs);
   };
 
-  const rememberJobs = (jobs: UpworkJobSummary[]) => {
+  const rememberJobs = useCallback((jobs: UpworkJobSummary[]) => {
     setSeenJobsByReference((current) => {
       const next = { ...current };
       jobs.forEach((job) => {
@@ -136,9 +118,9 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated 
       });
       return next;
     });
-  };
+  }, []);
 
-  const loadRecommended = async () => {
+  const loadRecommended = useCallback(async () => {
     setRecommendedState('loading');
     setError(null);
     setErrorCode(null);
@@ -154,7 +136,7 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated 
     setErrorCode(res.code ?? null);
     setError(res.message || 'Unable to load Upwork recommended jobs.');
     if (res.unauthenticated) onUnauthenticated();
-  };
+  }, [onUnauthenticated, rememberJobs]);
 
   const runSearch = async () => {
     setCustomState('loading');
@@ -239,6 +221,27 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated 
     }
   };
 
+  useEffect(() => {
+    setSavedRefs(loadRefs('uoi_saved_upwork_job_refs'));
+    setSkippedRefs(loadRefs('uoi_skipped_upwork_job_refs'));
+    void loadRecommended();
+  }, [loadRecommended]);
+
+  useEffect(() => {
+    if (activeSegment !== 'saved') return;
+    savedRefs
+      .filter((ref) => !seenJobsByReference[ref])
+      .forEach((ref) => {
+        void upworkApiService.getJobDetail(ref).then((res) => {
+          if (res.success && res.data) {
+            rememberJobs([detailToSummary(res.data)]);
+          } else if (res.unauthenticated) {
+            onUnauthenticated();
+          }
+        });
+      });
+  }, [activeSegment, savedRefs, seenJobsByReference, onUnauthenticated, rememberJobs]);
+
   const visibleJobs = useMemo(() => {
     const source =
       activeSegment === 'recommended'
@@ -263,11 +266,22 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated 
       return true;
     });
 
+    if (sortBy === 'opportunity_score') {
+      return [...filtered].sort((a, b) => {
+        const aScore = opportunityScoringService.analyze(a, realProfileData).score;
+        const bScore = opportunityScoringService.analyze(b, realProfileData).score;
+        if (aScore === null && bScore === null) return 0;
+        if (aScore === null) return 1;
+        if (bScore === null) return -1;
+        return bScore - aScore;
+      });
+    }
+
     if (sortBy === 'client_spend') {
       return [...filtered].sort((a, b) => (spendValue(b.client.totalSpent) ?? -1) - (spendValue(a.client.totalSpent) ?? -1));
     }
     return filtered;
-  }, [recommendedData, customSearchData, activeSegment, savedRefs, skippedRefs, seenJobsByReference, experienceLevels, clientRating, minClientSpend, connectsRequired, sortBy]);
+  }, [recommendedData, customSearchData, activeSegment, savedRefs, skippedRefs, seenJobsByReference, experienceLevels, clientRating, minClientSpend, connectsRequired, sortBy, realProfileData]);
 
   const totalPages = Math.max(1, Math.ceil(visibleJobs.length / itemsPerPage));
   const currentJobs = visibleJobs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -280,16 +294,70 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated 
     return error || 'Unable to load real Upwork jobs.';
   };
 
-  const renderJobCard = (job: UpworkJobSummary) => {
+  const formatBreakdown = (part: OpportunityAnalysis['breakdown'][keyof OpportunityAnalysis['breakdown']]) => (
+    part.available ? `${Math.round(part.earned)}/${part.availableWeight}` : 'N/A'
+  );
+
+  const renderOpportunityAnalysis = (analysis: OpportunityAnalysis) => (
+    <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="text-xs font-semibold text-slate-700">Opportunity Analysis</h3>
+          <p className="text-[11px] text-slate-500 mt-0.5">Deterministic profile-fit score, not hiring probability.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="px-2 py-1 rounded bg-white border border-slate-200 font-semibold text-slate-900">{analysis.score ?? 'N/A'}</span>
+          <span className="px-2 py-1 rounded bg-white border border-slate-200 text-slate-700">{analysis.classification}</span>
+          <span className="px-2 py-1 rounded bg-white border border-slate-200 text-slate-700">{analysis.confidence} Confidence</span>
+          <span className="px-2 py-1 rounded bg-white border border-slate-200 text-slate-700">Coverage {analysis.evidenceCoverage}%</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4 text-xs">
+        {Object.entries(opportunityScoringService.labels).map(([key, label]) => {
+          const part = analysis.breakdown[key as keyof OpportunityAnalysis['breakdown']];
+          return (
+            <div key={key} className="flex items-start justify-between gap-3 rounded-lg bg-white border border-slate-200 px-3 py-2">
+              <div>
+                <p className="font-medium text-slate-700">{label}</p>
+                <p className="text-slate-500 mt-0.5">{part.reason}</p>
+              </div>
+              <span className="font-semibold text-slate-900 whitespace-nowrap">{formatBreakdown(part)}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-xs">
+        <div>
+          <h4 className="font-semibold text-slate-700 mb-1.5">Why Match</h4>
+          {analysis.whyMatch.length ? <ul className="list-disc pl-4 text-slate-600 space-y-1">{analysis.whyMatch.map((reason) => <li key={reason}>{reason}</li>)}</ul> : <span className="text-slate-400">N/A</span>}
+        </div>
+        <div>
+          <h4 className="font-semibold text-slate-700 mb-1.5">Why Review / Skip</h4>
+          {analysis.whySkip.length ? <ul className="list-disc pl-4 text-slate-600 space-y-1">{analysis.whySkip.map((reason) => <li key={reason}>{reason}</li>)}</ul> : <span className="text-slate-400">N/A</span>}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderJobCard = (job: UpworkJobSummary, index: number) => {
     const saved = !!job.reference && savedRefs.includes(job.reference);
     const skipped = !!job.reference && skippedRefs.includes(job.reference);
+    const analysis = opportunityScoringService.analyze(job, realProfileData);
     return (
-      <div key={job.reference ?? job.title ?? Math.random()} className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-5 shadow-xs transition-all duration-150">
+      <div key={`${job.reference ?? job.title ?? 'job'}-${index}`} className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-5 shadow-xs transition-all duration-150">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                Analysis pending
+                {analysis.score === null ? 'Not enough evidence' : `Opportunity Score ${analysis.score}`}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                {analysis.classification}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                {analysis.confidence} Confidence
               </span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
                 {job.client.paymentVerified === true ? 'Payment verified' : job.client.paymentVerified === false ? 'Payment not verified' : 'Payment —'}
@@ -331,7 +399,7 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated 
               </div>
               <div className="flex items-center gap-2 self-end sm:self-auto">
                 <button onClick={() => openDetail(job.reference)} className="px-3 py-1.5 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-lg text-xs font-medium cursor-pointer">Job Details</button>
-                <button disabled className="px-3 py-1.5 border border-slate-200 text-slate-400 bg-slate-50 rounded-lg text-xs font-medium cursor-not-allowed">Analysis pending</button>
+                <button disabled className="px-3 py-1.5 border border-slate-200 text-slate-400 bg-slate-50 rounded-lg text-xs font-medium cursor-not-allowed">Deterministic score</button>
                 <button disabled className="px-3.5 py-1.5 bg-slate-200 text-slate-400 rounded-lg text-xs font-medium cursor-not-allowed">Proposal unavailable</button>
               </div>
             </div>
@@ -453,6 +521,7 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated 
             </div>
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="text-xs font-medium px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 cursor-pointer">
               <option value="best_match">Upwork Order</option>
+              <option value="opportunity_score">Opportunity Score</option>
               <option value="client_spend">Client Spend</option>
             </select>
           </div>
@@ -484,7 +553,7 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated 
             <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-3">
               <div>
                 <h2 className="text-base font-bold text-slate-900">{detail?.title ?? 'Original Job Brief'}</h2>
-                <p className="text-xs text-slate-500 mt-1">Source-backed Upwork job details. Analysis is not generated in this slice.</p>
+                <p className="text-xs text-slate-500 mt-1">Source-backed Upwork job details with deterministic profile-fit scoring.</p>
               </div>
               <button onClick={() => { setDetailState('idle'); setDetail(null); }} className="text-slate-400 hover:text-slate-700 cursor-pointer">×</button>
             </div>
@@ -492,6 +561,7 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated 
             {detailState === 'error' && <div className="py-10 text-center text-sm text-rose-700">{detailError}</div>}
             {detailState === 'loaded' && detail && (
               <div className="pt-4 space-y-4 text-sm">
+                {renderOpportunityAnalysis(opportunityScoringService.analyze(detail, realProfileData))}
                 <p className="text-slate-700 whitespace-pre-wrap">{emptyLabel(detail.description)}</p>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
                   <div><span className="text-slate-400">Type</span><p className="font-medium">{emptyLabel(detail.jobType)}</p></div>
