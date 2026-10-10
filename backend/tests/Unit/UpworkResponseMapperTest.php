@@ -48,7 +48,18 @@ class UpworkResponseMapperTest extends TestCase
         $this->assertEquals(140, $mapped['connectsBalance']);
         $this->assertEquals(100, $mapped['profileSignals']['jobSuccessScore']);
         $this->assertTrue($mapped['profileSignals']['topRated']);
+        $this->assertArrayNotHasKey('connectsBalance', $mapped['profileSignals']);
         $this->assertCount(1, $mapped['portfolioHighlights']);
+        $this->assertSame(
+            ['title', 'description', 'url', 'completionDate'],
+            array_keys($mapped['portfolioHighlights'][0])
+        );
+        $this->assertEquals([
+            'title' => 'Enterprise CRM',
+            'description' => 'Built with Next.js and Laravel',
+            'url' => 'https://example.com/project1',
+            'completionDate' => null,
+        ], $mapped['portfolioHighlights'][0]);
 
         // Check non-exposure
         $json = json_encode($mapped);
@@ -150,6 +161,20 @@ class UpworkResponseMapperTest extends TestCase
         $this->assertNull($mappedProfile['profileSignals']['topRated']);
         $this->assertSame([], $mappedProfile['skills']);
         $this->assertSame([], $mappedProfile['portfolioHighlights']);
+        $this->assertArrayHasKey('connectsBalance', $mappedProfile);
+        $this->assertArrayNotHasKey('connectsBalance', $mappedProfile['profileSignals']);
+
+        $mappedHighlight = UpworkResponseMapper::mapProfile([], [
+            'highlights' => [
+                [],
+            ],
+        ], []);
+        $this->assertEquals([
+            'title' => null,
+            'description' => null,
+            'url' => null,
+            'completionDate' => null,
+        ], $mappedHighlight['portfolioHighlights'][0]);
 
         // Empty job search item payload
         $rawSearch = ['jobs' => [[]]];

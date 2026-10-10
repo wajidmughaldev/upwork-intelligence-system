@@ -16,15 +16,15 @@ export interface UpworkProfileData {
   hourlyRate: string | null;
   skills: string[];
   portfolioHighlights: Array<{
-    id: string;
-    title: string;
-    description: string;
-    outcome?: string;
+    title: string | null;
+    description: string | null;
+    url: string | null;
+    completionDate: string | null;
   }>;
+  connectsBalance: number | null;
   profileSignals: {
     jobSuccessScore: number | null;
     topRated: boolean | null;
-    connectsBalance: number | null;
   };
 }
 
@@ -42,7 +42,7 @@ export interface ApiResponse<T> {
 }
 
 export class UpworkApiService {
-  async getStatus(): Promise<UpworkConnectionStatus & { unauthenticated?: boolean }> {
+  async getStatus(): Promise<ApiResponse<UpworkConnectionStatus>> {
     const res = await apiFetch<UpworkConnectionStatus>('/api/upwork/status', {
       method: 'GET',
       requireCsrf: false,
@@ -50,23 +50,22 @@ export class UpworkApiService {
 
     if (res.status === 401) {
       return {
-        connected: false,
-        accountName: null,
-        role: null,
-        status: 'disconnected',
+        success: false,
+        message: 'Unauthenticated session.',
         unauthenticated: true,
       };
     }
 
     if (res.ok && res.data) {
-      return res.data;
+      return {
+        success: true,
+        data: res.data,
+      };
     }
 
     return {
-      connected: false,
-      accountName: null,
-      role: null,
-      status: 'disconnected',
+      success: false,
+      message: res.error || 'Failed to fetch Upwork connection status.',
     };
   }
 

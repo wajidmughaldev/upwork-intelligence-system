@@ -27,6 +27,11 @@ import {
 import { Job, Application, UserProfile, ApplicationStatus, SubmissionResultState, SubmissionResultData } from '../types';
 import { Loader2 } from 'lucide-react';
 
+type RealUpworkRefreshResult = {
+  success: boolean;
+  unauthenticated?: boolean;
+};
+
 export default function Home() {
   // Auth state
   const [authStatus, setAuthStatus] = useState<'checking' | 'authenticated' | 'unauthenticated'>('checking');
@@ -51,11 +56,11 @@ export default function Home() {
 
   // Derived values for this slice
   const isConnected = connectionStatus?.connected ?? false;
-  const availableConnects = connectsData?.available ?? realProfileData?.profileSignals?.connectsBalance ?? null;
+  const availableConnects = connectsData?.available ?? realProfileData?.connectsBalance ?? null;
   const accountName = connectionStatus?.accountName ?? null;
 
   // Real Upwork Data Fetcher
-  const fetchRealUpworkData = useCallback(async () => {
+  const fetchRealUpworkData = useCallback(async (): Promise<RealUpworkRefreshResult> => {
     setRefreshState('loading');
     try {
       const statusRes = await upworkApiService.getStatus();
@@ -64,10 +69,29 @@ export default function Home() {
         setAuthUser(null);
         setAuthStatus('unauthenticated');
         setRefreshState('error');
-        return;
+        return { success: false, unauthenticated: true };
       }
 
-      setConnectionStatus(statusRes);
+      if (!statusRes.success || !statusRes.data) {
+        setRefreshState('error');
+        setSyncNotice({
+          message: 'Unable to refresh Upwork account data. Please try again.',
+          type: 'error',
+        });
+        return { success: false };
+      }
+
+      const status = statusRes.data;
+      setConnectionStatus(status);
+
+      if (!status.connected) {
+        if (status.status === 'disconnected' || status.status === 'no_eligible_account') {
+          setConnectsData(null);
+          setRealProfileData(null);
+        }
+        setRefreshState('error');
+        return { success: false };
+      }
 
       const [connectsRes, profileRes] = await Promise.all([
         upworkApiService.getConnects(),
@@ -78,24 +102,30 @@ export default function Home() {
         setAuthUser(null);
         setAuthStatus('unauthenticated');
         setRefreshState('error');
-        return;
+        return { success: false, unauthenticated: true };
       }
 
-      if (connectsRes.success && connectsRes.data) {
-        setConnectsData(connectsRes.data);
+      if (!connectsRes.success || !connectsRes.data || !profileRes.success || !profileRes.data) {
+        setRefreshState('error');
+        setSyncNotice({
+          message: 'Unable to refresh Upwork account data. Please try again.',
+          type: 'error',
+        });
+        return { success: false };
       }
 
-      if (profileRes.success && profileRes.data) {
-        setRealProfileData(profileRes.data);
-      }
+      setConnectsData(connectsRes.data);
+      setRealProfileData(profileRes.data);
 
       setRefreshState('success');
+      return { success: true };
     } catch {
       setRefreshState('error');
       setSyncNotice({
         message: 'Unable to refresh Upwork account data. Please try again.',
         type: 'error',
       });
+      return { success: false };
     }
   }, []);
 
@@ -170,9 +200,11 @@ export default function Home() {
 
   // Upwork Connection Handlers
   const handleSyncUpwork = async () => {
-    await fetchRealUpworkData();
-    setSyncNotice({ message: 'Upwork account and profile refreshed.', type: 'info' });
-    setTimeout(() => setSyncNotice(null), 3000);
+    const result = await fetchRealUpworkData();
+    if (result.success) {
+      setSyncNotice({ message: 'Upwork account and profile refreshed.', type: 'info' });
+      setTimeout(() => setSyncNotice(null), 3000);
+    }
   };
 
   const handleConnectOAuth = () => {
