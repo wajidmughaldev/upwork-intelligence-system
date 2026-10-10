@@ -87,7 +87,10 @@ class UpworkApiController extends Controller
     public function recommendedJobs(Request $request): JsonResponse
     {
         try {
-            $options = $request->only(['mode', 'limit']);
+            $options = $request->validate([
+                'mode' => ['nullable', 'string', 'max:40'],
+                'limit' => ['nullable', 'integer', 'min:1', 'max:10'],
+            ]);
             $jobs = $this->upworkService->recommendedJobs($options);
             $mapped = UpworkResponseMapper::mapJobSearchResults($jobs);
 
@@ -106,20 +109,21 @@ class UpworkApiController extends Controller
      */
     public function searchJobs(Request $request): JsonResponse
     {
-        try {
-            $filters = $request->only([
-                'query',
-                'skills',
-                'category',
-                'job_type',
-                'budget_min',
-                'budget_max',
-                'rate_min',
-                'rate_max',
-                'limit',
-                'include_full_details',
-            ]);
+        $filters = $request->validate([
+            'query' => ['nullable', 'string', 'max:120'],
+            'skills' => ['nullable', 'array', 'max:10'],
+            'skills.*' => ['string', 'max:50'],
+            'category' => ['nullable', 'string', 'max:80'],
+            'job_type' => ['nullable', 'in:fixed,hourly'],
+            'budget_min' => ['nullable', 'numeric', 'min:0'],
+            'budget_max' => ['nullable', 'numeric', 'min:0'],
+            'rate_min' => ['nullable', 'numeric', 'min:0'],
+            'rate_max' => ['nullable', 'numeric', 'min:0'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'include_full_details' => ['nullable', 'boolean'],
+        ]);
 
+        try {
             $results = $this->upworkService->searchJobs($filters);
             $mapped = UpworkResponseMapper::mapJobSearchResults($results);
 
@@ -138,6 +142,14 @@ class UpworkApiController extends Controller
      */
     public function jobDetails(string $reference): JsonResponse
     {
+        if (! $this->isValidPublicJobReference($reference)) {
+            return response()->json([
+                'success' => false,
+                'code' => 'INVALID_JOB_REFERENCE',
+                'message' => 'Invalid Upwork job reference.',
+            ], 422);
+        }
+
         try {
             $job = $this->upworkService->jobDetails($reference);
             $mapped = UpworkResponseMapper::mapJobDetail($job);
@@ -260,6 +272,11 @@ class UpworkApiController extends Controller
         } catch (Exception $e) {
             return UpworkErrorNormalizer::normalize($e);
         }
+    }
+
+    protected function isValidPublicJobReference(string $reference): bool
+    {
+        return $reference !== '' && str_starts_with($reference, '~02');
     }
 }
 

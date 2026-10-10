@@ -119,10 +119,7 @@ class UpworkResponseMapper
 
             $reference = static::resolvePublicJobReference($job);
 
-            $jobType = null;
-            if (isset($job['job_type'])) {
-                $jobType = strtolower((string) $job['job_type']) === 'hourly' ? 'hourly' : 'fixed';
-            }
+            $jobType = static::normalizeJobType($job['job_type'] ?? $job['type'] ?? null);
 
             $sanitizedJobs[] = [
                 'reference' => $reference,
@@ -167,10 +164,7 @@ class UpworkResponseMapper
 
         $reference = static::resolvePublicJobReference($job);
 
-        $jobType = null;
-        if (isset($job['job_type'])) {
-            $jobType = strtolower((string) $job['job_type']) === 'hourly' ? 'hourly' : 'fixed';
-        }
+        $jobType = static::normalizeJobType($job['job_type'] ?? $job['type'] ?? null);
 
         $screening = [];
         $rawQuestions = $job['screening_questions'] ?? $job['questions'] ?? [];
@@ -290,5 +284,20 @@ class UpworkResponseMapper
         }
 
         return null;
+    }
+
+    protected static function normalizeJobType(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $normalized = strtolower(trim(str_replace(['_', '-'], ' ', $value)));
+
+        return match ($normalized) {
+            'hourly', 'hourly rate', 'hourly contract' => 'hourly',
+            'fixed', 'fixed price', 'fixed price contract', 'fixed budget' => 'fixed',
+            default => null,
+        };
     }
 }

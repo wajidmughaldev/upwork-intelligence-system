@@ -111,6 +111,23 @@ class UpworkResponseMapperTest extends TestCase
         $this->assertStringNotContainsString('internal_routing_hash', $json);
     }
 
+    public function test_job_type_mapping_only_normalizes_known_values(): void
+    {
+        $mapped = UpworkResponseMapper::mapJobSearchResults([
+            'jobs' => [
+                ['ciphertext' => '~02fixed', 'job_type' => 'fixed-price', 'title' => 'Fixed'],
+                ['ciphertext' => '~02hourly', 'job_type' => 'hourly', 'title' => 'Hourly'],
+                ['ciphertext' => '~02unknown', 'job_type' => 'retainer', 'title' => 'Unknown'],
+                ['ciphertext' => '~02missing', 'title' => 'Missing'],
+            ],
+        ]);
+
+        $this->assertEquals('fixed', $mapped['jobs'][0]['jobType']);
+        $this->assertEquals('hourly', $mapped['jobs'][1]['jobType']);
+        $this->assertNull($mapped['jobs'][2]['jobType']);
+        $this->assertNull($mapped['jobs'][3]['jobType']);
+    }
+
     public function test_maps_proposals_and_invitations_safely(): void
     {
         $rawProposals = [
