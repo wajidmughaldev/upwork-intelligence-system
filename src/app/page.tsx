@@ -454,11 +454,10 @@ export default function Home() {
 
           {currentTab === 'jobs' && (
             <JobSearchView
-              jobs={jobs}
-              onViewAnalysis={handleViewAnalysis}
-              onGenerateProposal={handleGenerateProposal}
-              onToggleSave={handleToggleSave}
-              onSkipJob={handleSkipJob}
+              onUnauthenticated={() => {
+                setAuthUser(null);
+                setAuthStatus('unauthenticated');
+              }}
             />
           )}
 

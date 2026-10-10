@@ -226,4 +226,38 @@ class UpworkMcpServiceTest extends TestCase
             }
         }
     }
+
+    public function test_search_jobs_omits_missing_query_and_unsupported_params(): void
+    {
+        UpworkConnection::create([
+            'provider' => 'upwork',
+            'access_token' => 'active_oauth_token',
+            'org_uid' => 'talent-org',
+            'account_status' => 'selected',
+            'is_active' => true,
+        ]);
+
+        $service = new class extends UpworkMcpService {
+            public array $lastArguments = [];
+
+            protected function callTool(string $tool, array $arguments = []): array
+            {
+                $this->lastArguments = $arguments;
+
+                return ['jobs' => []];
+            }
+        };
+
+        $service->searchJobs([
+            'skills' => ['one', 'two', 'three', 'four', 'five', 'six'],
+            'include_full_details' => true,
+            'limit' => 20,
+        ]);
+
+        $params = (array) $service->lastArguments['params'];
+        $this->assertArrayNotHasKey('query', $params);
+        $this->assertArrayNotHasKey('include_full_details', $params);
+        $this->assertSame(['one', 'two', 'three', 'four', 'five'], $params['skills']);
+        $this->assertSame(10, $params['limit']);
+    }
 }

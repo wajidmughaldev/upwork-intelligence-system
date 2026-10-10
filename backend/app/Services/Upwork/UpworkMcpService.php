@@ -206,8 +206,8 @@ class UpworkMcpService
         $orgUid = $this->resolveTalentOrgUid();
 
         $params = array_filter([
-            'query' => $filters['query'] ?? 'Laravel React',
-            'skills' => isset($filters['skills']) ? (array) $filters['skills'] : null,
+            'query' => $filters['query'] ?? null,
+            'skills' => isset($filters['skills']) ? array_slice((array) $filters['skills'], 0, 5) : null,
             'category' => $filters['category'] ?? null,
             'job_type' => $filters['job_type'] ?? null,
             'budget_min' => isset($filters['budget_min']) ? (float) $filters['budget_min'] : null,
@@ -215,7 +215,6 @@ class UpworkMcpService
             'rate_min' => isset($filters['rate_min']) ? (float) $filters['rate_min'] : null,
             'rate_max' => isset($filters['rate_max']) ? (float) $filters['rate_max'] : null,
             'limit' => isset($filters['limit']) ? min(10, max(1, (int) $filters['limit'])) : 10,
-            'include_full_details' => (bool) ($filters['include_full_details'] ?? false),
         ], fn ($val) => $val !== null);
 
         $response = $this->callTool('find_jobs', [

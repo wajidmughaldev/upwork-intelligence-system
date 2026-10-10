@@ -100,6 +100,14 @@ export interface ApiResponse<T> {
 
 export class UpworkApiService {
   private jobError<T>(res: { status: number; data: ApiResponse<T> | null; error?: string }, fallback: string): ApiResponse<T> {
+    if (res.data?.code) {
+      return {
+        success: false,
+        code: res.data.code,
+        message: res.data.message || fallback,
+      };
+    }
+
     if (res.status === 401) {
       return {
         success: false,
@@ -110,7 +118,6 @@ export class UpworkApiService {
 
     return {
       success: false,
-      code: res.data?.code,
       message: res.data?.message || res.error || fallback,
     };
   }
@@ -238,7 +245,7 @@ export class UpworkApiService {
     if (filters.rate_min !== undefined) params.set('rate_min', String(filters.rate_min));
     if (filters.rate_max !== undefined) params.set('rate_max', String(filters.rate_max));
     if (filters.limit !== undefined) params.set('limit', String(Math.min(10, Math.max(1, filters.limit))));
-    filters.skills?.slice(0, 10).forEach((skill) => params.append('skills[]', skill));
+    filters.skills?.slice(0, 5).forEach((skill) => params.append('skills[]', skill));
 
     const res = await apiFetch<ApiResponse<UpworkJobSearchData>>(`/api/upwork/jobs/search?${params.toString()}`, {
       method: 'GET',

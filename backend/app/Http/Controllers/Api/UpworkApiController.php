@@ -12,6 +12,7 @@ use App\Services\Upwork\UpworkMcpService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class UpworkApiController extends Controller
 {
@@ -86,11 +87,20 @@ class UpworkApiController extends Controller
      */
     public function recommendedJobs(Request $request): JsonResponse
     {
+        $validator = Validator::make($request->all(), [
+            'mode' => ['nullable', 'in:best_match,most_recent'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:10'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         try {
-            $options = $request->validate([
-                'mode' => ['nullable', 'string', 'max:40'],
-                'limit' => ['nullable', 'integer', 'min:1', 'max:10'],
-            ]);
+            $options = $validator->validated();
             $jobs = $this->upworkService->recommendedJobs($options);
             $mapped = UpworkResponseMapper::mapJobSearchResults($jobs);
 
@@ -111,7 +121,7 @@ class UpworkApiController extends Controller
     {
         $filters = $request->validate([
             'query' => ['nullable', 'string', 'max:120'],
-            'skills' => ['nullable', 'array', 'max:10'],
+            'skills' => ['nullable', 'array', 'max:5'],
             'skills.*' => ['string', 'max:50'],
             'category' => ['nullable', 'string', 'max:80'],
             'job_type' => ['nullable', 'in:fixed,hourly'],
@@ -120,7 +130,6 @@ class UpworkApiController extends Controller
             'rate_min' => ['nullable', 'numeric', 'min:0'],
             'rate_max' => ['nullable', 'numeric', 'min:0'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:10'],
-            'include_full_details' => ['nullable', 'boolean'],
         ]);
 
         try {

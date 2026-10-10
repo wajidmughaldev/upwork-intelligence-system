@@ -119,6 +119,19 @@ class UpworkApiTest extends TestCase
         ]))->assertStatus(422);
     }
 
+    public function test_search_rejects_more_than_five_skills(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->mock(UpworkMcpService::class, function ($mock): void {
+            $mock->shouldNotReceive('searchJobs');
+        });
+
+        $this->getJson('/api/upwork/jobs/search?' . http_build_query([
+            'skills' => ['a', 'b', 'c', 'd', 'e', 'f'],
+        ]))->assertStatus(422);
+    }
+
     public function test_search_forwards_valid_bounded_filters(): void
     {
         Sanctum::actingAs(User::factory()->create());
@@ -134,6 +147,29 @@ class UpworkApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.jobs', []);
+    }
+
+    public function test_recommended_jobs_accepts_only_verified_modes(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->mock(UpworkMcpService::class, function ($mock): void {
+            $mock->shouldReceive('recommendedJobs')->twice()->andReturn(['jobs' => []]);
+        });
+
+        $this->getJson('/api/upwork/jobs/recommended?mode=best_match')->assertOk();
+        $this->getJson('/api/upwork/jobs/recommended?mode=most_recent')->assertOk();
+    }
+
+    public function test_invalid_recommended_mode_is_rejected_before_mcp(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->mock(UpworkMcpService::class, function ($mock): void {
+            $mock->shouldNotReceive('recommendedJobs');
+        });
+
+        $this->getJson('/api/upwork/jobs/recommended?mode=magic')->assertStatus(422);
     }
 
     public function test_tokens_and_internal_ids_are_never_exposed_in_status_api(): void

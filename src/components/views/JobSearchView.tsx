@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Job } from '../../types';
 import {
   upworkApiService,
   UpworkJobDetail,
@@ -9,11 +8,7 @@ import {
 } from '../../services/UpworkApiService';
 
 interface JobSearchViewProps {
-  jobs: Job[];
-  onViewAnalysis: (job: Job) => void;
-  onGenerateProposal: (job: Job) => void;
-  onToggleSave: (jobId: string) => void;
-  onSkipJob: (jobId: string) => void;
+  onUnauthenticated: () => void;
 }
 
 type Segment = 'recommended' | 'custom' | 'saved';
@@ -46,7 +41,28 @@ function spendValue(value: string | null): number | null {
   return amount;
 }
 
-export const JobSearchView: React.FC<JobSearchViewProps> = () => {
+function detailToSummary(detail: UpworkJobDetail): UpworkJobSummary {
+  return {
+    reference: detail.reference,
+    title: detail.title,
+    descriptionSnippet: detail.description,
+    jobType: detail.jobType,
+    budget: detail.budget,
+    hourlyRate: detail.hourlyRate,
+    skills: detail.skills,
+    experienceLevel: detail.experienceLevel,
+    postedTime: null,
+    connectsRequired: detail.connectsRequired,
+    client: {
+      paymentVerified: detail.client.paymentVerified,
+      rating: detail.client.rating,
+      totalSpent: detail.client.totalSpent,
+      location: detail.client.location,
+    },
+  };
+}
+
+export const JobSearchView: React.FC<JobSearchViewProps> = ({ onUnauthenticated }) => {
   const [activeSegment, setActiveSegment] = useState<Segment>('recommended');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [sortBy, setSortBy] = useState('best_match');
@@ -67,11 +83,15 @@ export const JobSearchView: React.FC<JobSearchViewProps> = () => {
   const [minClientSpend, setMinClientSpend] = useState('any');
   const [connectsRequired, setConnectsRequired] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [jobsData, setJobsData] = useState<UpworkJobSearchData | null>(null);
-  const [loadState, setLoadState] = useState<LoadState>('idle');
+  const [recommendedData, setRecommendedData] = useState<UpworkJobSearchData | null>(null);
+  const [customSearchData, setCustomSearchData] = useState<UpworkJobSearchData | null>(null);
+  const [recommendedState, setRecommendedState] = useState<LoadState>('idle');
+  const [customState, setCustomState] = useState<LoadState>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [savedRefs, setSavedRefs] = useState<string[]>([]);
   const [skippedRefs, setSkippedRefs] = useState<string[]>([]);
+  const [seenJobsByReference, setSeenJobsByReference] = useState<Record<string, UpworkJobSummary>>({});
   const [detail, setDetail] = useState<UpworkJobDetail | null>(null);
   const [detailState, setDetailState] = useState<LoadState>('idle');
   const [detailError, setDetailError] = useState<string | null>(null);
@@ -83,6 +103,21 @@ export const JobSearchView: React.FC<JobSearchViewProps> = () => {
     void loadRecommended();
   }, []);
 
+  useEffect(() => {
+    if (activeSegment !== 'saved') return;
+    savedRefs
+      .filter((ref) => !seenJobsByReference[ref])
+      .forEach((ref) => {
+        void upworkApiService.getJobDetail(ref).then((res) => {
+          if (res.success && res.data) {
+            rememberJobs([detailToSummary(res.data)]);
+          } else if (res.unauthenticated) {
+            onUnauthenticated();
+          }
+        });
+      });
+  }, [activeSegment, savedRefs, seenJobsByReference]);
+
   const updateSavedRefs = (refs: string[]) => {
     setSavedRefs(refs);
     saveRefs('uoi_saved_upwork_job_refs', refs);
@@ -93,44 +128,59 @@ export const JobSearchView: React.FC<JobSearchViewProps> = () => {
     saveRefs('uoi_skipped_upwork_job_refs', refs);
   };
 
+  const rememberJobs = (jobs: UpworkJobSummary[]) => {
+    setSeenJobsByReference((current) => {
+      const next = { ...current };
+      jobs.forEach((job) => {
+        if (isSafeReference(job.reference)) next[job.reference] = job;
+      });
+      return next;
+    });
+  };
+
   const loadRecommended = async () => {
-    setLoadState('loading');
+    setRecommendedState('loading');
     setError(null);
+    setErrorCode(null);
     const res = await upworkApiService.getRecommendedJobs(10);
     if (res.success && res.data) {
-      setJobsData(res.data);
-      setLoadState('loaded');
+      setRecommendedData(res.data);
+      rememberJobs(res.data.jobs);
+      setRecommendedState('loaded');
       setCurrentPage(1);
       return;
     }
-    setLoadState('error');
+    setRecommendedState('error');
+    setErrorCode(res.code ?? null);
     setError(res.message || 'Unable to load Upwork recommended jobs.');
-    if (res.unauthenticated) window.location.reload();
+    if (res.unauthenticated) onUnauthenticated();
   };
 
   const runSearch = async () => {
-    setLoadState('loading');
+    setCustomState('loading');
     setError(null);
+    setErrorCode(null);
     const budget = Number.parseFloat(minBudget.replace(/[^0-9.]/g, ''));
     const filters: UpworkSearchParams = {
       query: searchQuery.trim() || undefined,
       skills: selectedSkills.length ? selectedSkills : keywords.split(',').map((k) => k.trim()).filter(Boolean),
-      category: category === 'all' ? undefined : category,
       job_type: jobType === 'fixed' || jobType === 'hourly' ? jobType : undefined,
       budget_min: Number.isFinite(budget) && budget > 0 ? budget : undefined,
       limit: 10,
     };
     const res = await upworkApiService.searchJobs(filters);
     if (res.success && res.data) {
-      setJobsData(res.data);
-      setLoadState('loaded');
+      setCustomSearchData(res.data);
+      rememberJobs(res.data.jobs);
+      setCustomState('loaded');
       setActiveSegment('custom');
       setCurrentPage(1);
       return;
     }
-    setLoadState('error');
+    setCustomState('error');
+    setErrorCode(res.code ?? null);
     setError(res.message || 'Unable to search Upwork jobs.');
-    if (res.unauthenticated) window.location.reload();
+    if (res.unauthenticated) onUnauthenticated();
   };
 
   const openDetail = async (reference: string | null) => {
@@ -145,12 +195,15 @@ export const JobSearchView: React.FC<JobSearchViewProps> = () => {
     const res = await upworkApiService.getJobDetail(reference);
     if (res.success && res.data) {
       setDetail(res.data);
+      if (isSafeReference(res.data.reference)) {
+        rememberJobs([detailToSummary(res.data)]);
+      }
       setDetailState('loaded');
       return;
     }
     setDetailState('error');
     setDetailError(res.message || 'Unable to load Upwork job detail.');
-    if (res.unauthenticated) window.location.reload();
+    if (res.unauthenticated) onUnauthenticated();
   };
 
   const handleToggleSave = (reference: string | null) => {
@@ -187,7 +240,12 @@ export const JobSearchView: React.FC<JobSearchViewProps> = () => {
   };
 
   const visibleJobs = useMemo(() => {
-    const source = jobsData?.jobs ?? [];
+    const source =
+      activeSegment === 'recommended'
+        ? recommendedData?.jobs ?? []
+        : activeSegment === 'custom'
+          ? customSearchData?.jobs ?? []
+          : savedRefs.map((ref) => seenJobsByReference[ref]).filter(Boolean);
     const filtered = source.filter((job) => {
       if (activeSegment === 'saved' && (!job.reference || !savedRefs.includes(job.reference))) return false;
       if (job.reference && skippedRefs.includes(job.reference) && activeSegment !== 'saved') return false;
@@ -208,11 +266,8 @@ export const JobSearchView: React.FC<JobSearchViewProps> = () => {
     if (sortBy === 'client_spend') {
       return [...filtered].sort((a, b) => (spendValue(b.client.totalSpent) ?? -1) - (spendValue(a.client.totalSpent) ?? -1));
     }
-    if (sortBy === 'newest') {
-      return [...filtered].sort((a, b) => (b.postedTime ?? '').localeCompare(a.postedTime ?? ''));
-    }
     return filtered;
-  }, [jobsData, activeSegment, savedRefs, skippedRefs, experienceLevels, clientRating, minClientSpend, connectsRequired, sortBy]);
+  }, [recommendedData, customSearchData, activeSegment, savedRefs, skippedRefs, seenJobsByReference, experienceLevels, clientRating, minClientSpend, connectsRequired, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(visibleJobs.length / itemsPerPage));
   const currentJobs = visibleJobs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -403,17 +458,17 @@ export const JobSearchView: React.FC<JobSearchViewProps> = () => {
             </div>
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="text-xs font-medium px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 cursor-pointer">
               <option value="best_match">Upwork Order</option>
-              <option value="newest">Newest</option>
               <option value="client_spend">Client Spend</option>
             </select>
           </div>
         </div>
 
-        {loadState === 'loading' && <div className="bg-white border border-slate-200 rounded-xl p-10 text-center text-slate-500 mb-8">Loading real Upwork jobs...</div>}
-        {loadState === 'error' && <div className="bg-white border border-rose-200 rounded-xl p-10 text-center text-rose-700 mb-8">{stateLabel()}</div>}
-        {loadState !== 'loading' && loadState !== 'error' && currentJobs.length === 0 && <div className="bg-white border border-slate-200 rounded-xl p-10 text-center text-slate-500 mb-8">No real Upwork jobs found for this view.</div>}
+        {activeSegment === 'custom' && customState === 'idle' && <div className="bg-white border border-slate-200 rounded-xl p-10 text-center text-slate-500 mb-8">Run a search to view Upwork jobs.</div>}
+        {((activeSegment === 'recommended' && recommendedState === 'loading') || (activeSegment === 'custom' && customState === 'loading')) && <div className="bg-white border border-slate-200 rounded-xl p-10 text-center text-slate-500 mb-8">Loading real Upwork jobs...</div>}
+        {((activeSegment === 'recommended' && recommendedState === 'error') || (activeSegment === 'custom' && customState === 'error')) && <div className="bg-white border border-rose-200 rounded-xl p-10 text-center text-rose-700 mb-8">{stateLabel(errorCode ?? undefined)}</div>}
+        {activeSegment !== 'custom' && currentJobs.length === 0 && <div className="bg-white border border-slate-200 rounded-xl p-10 text-center text-slate-500 mb-8">No real Upwork jobs found for this view.</div>}
 
-        {loadState !== 'loading' && loadState !== 'error' && (
+        {!((activeSegment === 'recommended' && recommendedState !== 'loaded') || (activeSegment === 'custom' && customState !== 'loaded')) && (
           <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-4 mb-8' : 'space-y-4 mb-8'}>
             {currentJobs.map(renderJobCard)}
           </div>
