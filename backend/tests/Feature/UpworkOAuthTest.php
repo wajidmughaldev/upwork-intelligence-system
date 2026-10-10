@@ -8,6 +8,7 @@ use App\Models\UpworkConnection;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Laravel\Mcp\Facades\Mcp;
 use Tests\TestCase;
 
 class UpworkOAuthTest extends TestCase
@@ -80,5 +81,23 @@ class UpworkOAuthTest extends TestCase
         $responseAuth = $this->get('/oauth/upwork/connect');
         // Authenticated connect redirects to OAuth provider
         $this->assertTrue($responseAuth->isRedirect());
+    }
+
+    public function test_oauth_connect_redirect_does_not_leak_raw_exception_message(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        Mcp::shouldReceive('client')
+            ->once()
+            ->with('upwork')
+            ->andThrow(new \RuntimeException('secret provider token failure'));
+
+        $response = $this->get('/oauth/upwork/connect?return_to=' . urlencode('http://localhost:3000/jobs'));
+
+        $response->assertRedirect();
+        $location = $response->headers->get('Location') ?? '';
+
+        $this->assertStringContainsString('upwork_error=oauth_start_failed', $location);
+        $this->assertStringNotContainsString('secret provider token failure', $location);
     }
 }

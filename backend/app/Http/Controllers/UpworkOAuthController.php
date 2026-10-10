@@ -45,7 +45,7 @@ class UpworkOAuthController extends Controller
 
             $separator = str_contains($safeReturnTo, '?') ? '&' : '?';
 
-            return redirect($safeReturnTo . $separator . 'upwork_error=' . urlencode($e->getMessage()));
+            return redirect($safeReturnTo . $separator . 'upwork_error=oauth_start_failed');
         }
     }
 

@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Http\Controllers\UpworkOAuthController;
 use App\Models\UpworkConnection;
 use App\Models\User;
+use App\Services\Upwork\UpworkMcpService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
@@ -59,6 +60,116 @@ class UpworkApiTest extends TestCase
                 'accountName' => null,
                 'role' => null,
             ]);
+    }
+
+    public function test_job_detail_allows_only_public_tilde_02_references(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->mock(UpworkMcpService::class, function ($mock): void {
+            $mock->shouldReceive('jobDetails')
+                ->once()
+                ->with('~02189a7f34c2b98e71')
+                ->andReturn([
+                    'job' => [
+                        'ciphertext' => '~02189a7f34c2b98e71',
+                        'title' => 'Safe Job',
+                    ],
+                ]);
+        });
+
+        $this->getJson('/api/upwork/jobs/' . rawurlencode('~02189a7f34c2b98e71'))
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.reference', '~02189a7f34c2b98e71');
+    }
+
+    public function test_invalid_job_detail_references_are_blocked_before_mcp(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->mock(UpworkMcpService::class, function ($mock): void {
+            $mock->shouldNotReceive('jobDetails');
+        });
+
+        foreach (['1849204918239019283', '~019999999999', 'c8a9f24b-3b7d-4bad-9bdd-2b0d7b3dcb6d', 'arbitrary-ref', ' '] as $reference) {
+            $this->getJson('/api/upwork/jobs/' . rawurlencode($reference))
+                ->assertStatus(422)
+                ->assertJson([
+                    'success' => false,
+                    'code' => 'INVALID_JOB_REFERENCE',
+                    'message' => 'Invalid Upwork job reference.',
+                ]);
+        }
+    }
+
+    public function test_search_input_validation_blocks_unbounded_filters(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->mock(UpworkMcpService::class, function ($mock): void {
+            $mock->shouldNotReceive('searchJobs');
+        });
+
+        $this->getJson('/api/upwork/jobs/search?' . http_build_query([
+            'query' => str_repeat('x', 121),
+            'job_type' => 'retainer',
+            'limit' => 99,
+            'budget_min' => -1,
+        ]))->assertStatus(422);
+    }
+
+    public function test_search_rejects_more_than_five_skills(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->mock(UpworkMcpService::class, function ($mock): void {
+            $mock->shouldNotReceive('searchJobs');
+        });
+
+        $this->getJson('/api/upwork/jobs/search?' . http_build_query([
+            'skills' => ['a', 'b', 'c', 'd', 'e', 'f'],
+        ]))->assertStatus(422);
+    }
+
+    public function test_search_forwards_valid_bounded_filters(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->mock(UpworkMcpService::class, function ($mock): void {
+            $mock->shouldReceive('searchJobs')
+                ->once()
+                ->with(\Mockery::on(fn (array $filters): bool => $filters['query'] === 'Laravel' && $filters['job_type'] === 'hourly' && (int) $filters['limit'] === 5))
+                ->andReturn(['jobs' => []]);
+        });
+
+        $this->getJson('/api/upwork/jobs/search?query=Laravel&job_type=hourly&limit=5')
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.jobs', []);
+    }
+
+    public function test_recommended_jobs_accepts_only_verified_modes(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->mock(UpworkMcpService::class, function ($mock): void {
+            $mock->shouldReceive('recommendedJobs')->twice()->andReturn(['jobs' => []]);
+        });
+
+        $this->getJson('/api/upwork/jobs/recommended?mode=best_match')->assertOk();
+        $this->getJson('/api/upwork/jobs/recommended?mode=most_recent')->assertOk();
+    }
+
+    public function test_invalid_recommended_mode_is_rejected_before_mcp(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->mock(UpworkMcpService::class, function ($mock): void {
+            $mock->shouldNotReceive('recommendedJobs');
+        });
+
+        $this->getJson('/api/upwork/jobs/recommended?mode=magic')->assertStatus(422);
     }
 
     public function test_tokens_and_internal_ids_are_never_exposed_in_status_api(): void

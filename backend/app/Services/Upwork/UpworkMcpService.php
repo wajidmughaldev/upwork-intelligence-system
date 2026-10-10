@@ -206,8 +206,8 @@ class UpworkMcpService
         $orgUid = $this->resolveTalentOrgUid();
 
         $params = array_filter([
-            'query' => $filters['query'] ?? 'Laravel React',
-            'skills' => isset($filters['skills']) ? (array) $filters['skills'] : null,
+            'query' => $filters['query'] ?? null,
+            'skills' => isset($filters['skills']) ? array_slice((array) $filters['skills'], 0, 5) : null,
             'category' => $filters['category'] ?? null,
             'job_type' => $filters['job_type'] ?? null,
             'budget_min' => isset($filters['budget_min']) ? (float) $filters['budget_min'] : null,
@@ -215,7 +215,6 @@ class UpworkMcpService
             'rate_min' => isset($filters['rate_min']) ? (float) $filters['rate_min'] : null,
             'rate_max' => isset($filters['rate_max']) ? (float) $filters['rate_max'] : null,
             'limit' => isset($filters['limit']) ? min(10, max(1, (int) $filters['limit'])) : 10,
-            'include_full_details' => (bool) ($filters['include_full_details'] ?? false),
         ], fn ($val) => $val !== null);
 
         $response = $this->callTool('find_jobs', [
@@ -272,7 +271,12 @@ class UpworkMcpService
             ],
         ]);
 
-        return $this->normalizeJobIdentifiers($response);
+        $normalized = $this->normalizeJobIdentifiers($response);
+        if (str_starts_with($jobReference, '~02') && empty($normalized['ciphertext'])) {
+            $normalized['ciphertext'] = $jobReference;
+        }
+
+        return $normalized;
     }
 
     /**
@@ -606,7 +610,7 @@ class UpworkMcpService
      */
     protected function normalizeJobIdentifiers(array $payload): array
     {
-        $normalizeItem = function (&$item) {
+        $normalizeItem = function (&$item) use (&$normalizeItem) {
             if (! is_array($item)) {
                 return;
             }
@@ -614,8 +618,9 @@ class UpworkMcpService
             $id1 = $item['id'] ?? null;
             $id2 = $item['numeric_id'] ?? $item['job_id'] ?? null;
             $cipher = $item['ciphertext'] ?? $item['job_reference'] ?? $item['reference'] ?? null;
+            $url = $item['url'] ?? null;
 
-            $candidates = array_filter([$id1, $id2, $cipher], fn ($v) => is_string($v) && ! empty($v));
+            $candidates = array_filter([$id1, $id2, $cipher, $url], fn ($v) => is_string($v) && ! empty($v));
 
             $foundCipher = null;
             $foundNumeric = null;
@@ -623,6 +628,8 @@ class UpworkMcpService
             foreach ($candidates as $val) {
                 if (str_starts_with($val, '~02')) {
                     $foundCipher ??= $val;
+                } elseif (preg_match('/(?<![A-Za-z0-9_~])(~02[A-Za-z0-9]+)/', $val, $matches)) {
+                    $foundCipher ??= $matches[1];
                 } elseif (ctype_digit($val) || is_numeric($val)) {
                     $foundNumeric ??= (string) $val;
                 }
@@ -630,6 +637,10 @@ class UpworkMcpService
 
             $item['ciphertext'] = $foundCipher ?? $cipher;
             $item['numeric_id'] = $foundNumeric;
+
+            if (isset($item['data']['marketplaceJobPosting']) && is_array($item['data']['marketplaceJobPosting'])) {
+                $normalizeItem($item['data']['marketplaceJobPosting']);
+            }
         };
 
         if (isset($payload['jobs']) && is_array($payload['jobs'])) {
