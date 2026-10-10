@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -14,15 +13,23 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        if (! $request->hasSession()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Session authentication is required.',
+            ], 401);
+        }
+
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
 
         if (!Auth::attempt($credentials, $request->boolean('remember'))) {
-            throw ValidationException::withMessages([
-                'email' => [__('auth.failed')],
-            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid email or password.',
+            ], 422);
         }
 
         $request->session()->regenerate();
@@ -30,6 +37,7 @@ class AuthController extends Controller
         $user = Auth::user();
 
         return response()->json([
+            'success' => true,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -46,6 +54,7 @@ class AuthController extends Controller
         $user = $request->user();
 
         return response()->json([
+            'success' => true,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -59,13 +68,21 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        if (! $request->hasSession()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Session authentication is required.',
+            ], 401);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return response()->json([
-            'message' => 'Logged out successfully',
+            'success' => true,
+            'message' => 'Signed out successfully.',
         ]);
     }
 }

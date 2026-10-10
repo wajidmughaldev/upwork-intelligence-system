@@ -7,53 +7,74 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class AuthApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function spa(): self
+    {
+        return $this
+            ->withHeader('Origin', 'http://localhost:3000')
+            ->withHeader('Referer', 'http://localhost:3000/');
+    }
+
+    private function issueCsrfCookie(): void
+    {
+        $this->spa()->get('/sanctum/csrf-cookie')->assertNoContent();
+    }
+
     public function test_unauthenticated_me_returns_401(): void
     {
-        $response = $this->getJson('/api/auth/me');
-        $response->assertStatus(401);
+        $this->withSession([])->getJson('/api/auth/me')->assertStatus(401);
     }
 
     public function test_login_with_valid_credentials_authenticates_session_and_returns_safe_user(): void
     {
         $user = User::factory()->create([
+            'name' => 'Lead Engineer',
             'email' => 'engineer@example.com',
             'password' => Hash::make('SecretPass123!'),
         ]);
 
-        $response = $this->postJson('/api/auth/login', [
+        $this->issueCsrfCookie();
+
+        $response = $this->spa()->postJson('/api/auth/login', [
             'email' => 'engineer@example.com',
             'password' => 'SecretPass123!',
         ]);
 
-        $response->assertStatus(200)
+        $response->assertOk()
             ->assertJson([
                 'success' => true,
                 'user' => [
                     'id' => $user->id,
-                    'name' => $user->name,
+                    'name' => 'Lead Engineer',
                     'email' => 'engineer@example.com',
                 ],
-            ]);
+            ])
+            ->assertJsonMissing(['password', 'remember_token', 'tokens', 'created_at', 'updated_at']);
 
-        $response->assertJsonMissing(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes']);
-        $this->assertAuthenticatedAs($user);
+        $this->assertAuthenticatedAs($user, 'web');
+
+        $this->spa()->getJson('/api/auth/me')
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('user.email', 'engineer@example.com')
+            ->assertJsonMissing(['password', 'remember_token', 'tokens', 'created_at', 'updated_at']);
     }
 
-    public function test_login_with_invalid_credentials_is_rejected_and_does_not_authenticate(): void
+    public function test_login_with_invalid_credentials_returns_422_and_does_not_authenticate(): void
     {
         User::factory()->create([
             'email' => 'engineer@example.com',
             'password' => Hash::make('SecretPass123!'),
         ]);
 
-        $response = $this->postJson('/api/auth/login', [
+        $this->issueCsrfCookie();
+
+        $response = $this->spa()->postJson('/api/auth/login', [
             'email' => 'engineer@example.com',
             'password' => 'WrongPassword!',
         ]);
@@ -61,66 +82,77 @@ class AuthApiTest extends TestCase
         $response->assertStatus(422)
             ->assertJson([
                 'success' => false,
+                'message' => 'Invalid email or password.',
             ]);
 
-        $this->assertGuest();
+        $this->assertGuest('web');
     }
 
-    public function test_authenticated_me_returns_safe_user_payload(): void
+    public function test_logout_invalidates_session_and_me_returns_401_afterward(): void
     {
-        $user = User::factory()->create([
-            'name' => 'Lead Engineer',
-            'email' => 'lead@example.com',
+        User::factory()->create([
+            'email' => 'engineer@example.com',
+            'password' => Hash::make('SecretPass123!'),
         ]);
 
-        Sanctum::actingAs($user);
+        $this->issueCsrfCookie();
 
-        $response = $this->getJson('/api/auth/me');
-        $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-                'user' => [
-                    'id' => $user->id,
-                    'name' => 'Lead Engineer',
-                    'email' => 'lead@example.com',
-                ],
-            ]);
+        $this->spa()->postJson('/api/auth/login', [
+            'email' => 'engineer@example.com',
+            'password' => 'SecretPass123!',
+        ])->assertOk();
 
-        $response->assertJsonMissing(['password', 'remember_token']);
-    }
+        $this->assertAuthenticated('web');
 
-    public function test_authenticated_logout_invalidates_session(): void
-    {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
-
-        $response = $this->postJson('/api/auth/logout');
-        $response->assertStatus(200)
+        $this->spa()->postJson('/api/auth/logout')
+            ->assertOk()
             ->assertJson([
                 'success' => true,
                 'message' => 'Signed out successfully.',
             ]);
 
-        $this->assertGuest();
+        $this->assertGuest('web');
+
+        $this->flushSession();
+        $this->app['auth']->forgetGuards();
+
+        $this->withSession([])->getJson('/api/auth/me')->assertStatus(401);
     }
 
-    public function test_sensitive_model_fields_and_password_hashes_are_never_exposed(): void
+    public function test_login_throttle_works(): void
     {
-        $user = User::factory()->create([
-            'email' => 'secure@example.com',
-            'password' => Hash::make('StrongPass789!'),
+        User::factory()->create([
+            'email' => 'engineer@example.com',
+            'password' => Hash::make('SecretPass123!'),
         ]);
 
-        Sanctum::actingAs($user);
+        $this->issueCsrfCookie();
 
-        $meResponse = $this->getJson('/api/auth/me');
-        $meData = $meResponse->json('user');
+        for ($i = 0; $i < 10; $i++) {
+            $this->spa()->postJson('/api/auth/login', [
+                'email' => 'engineer@example.com',
+                'password' => 'WrongPassword!',
+            ])->assertStatus(422);
+        }
 
-        $this->assertArrayHasKey('id', $meData);
-        $this->assertArrayHasKey('name', $meData);
-        $this->assertArrayHasKey('email', $meData);
-        $this->assertArrayNotHasKey('password', $meData);
-        $this->assertArrayNotHasKey('remember_token', $meData);
-        $this->assertArrayNotHasKey('two_factor_secret', $meData);
+        $this->spa()->postJson('/api/auth/login', [
+            'email' => 'engineer@example.com',
+            'password' => 'WrongPassword!',
+        ])->assertStatus(429);
+    }
+
+    public function test_non_stateful_request_does_not_receive_privileged_session_behavior(): void
+    {
+        User::factory()->create([
+            'email' => 'engineer@example.com',
+            'password' => Hash::make('SecretPass123!'),
+        ]);
+
+        $this->postJson('/api/auth/login', [
+            'email' => 'engineer@example.com',
+            'password' => 'SecretPass123!',
+        ])->assertStatus(401);
+
+        $this->getJson('/api/auth/me')->assertStatus(401);
     }
 }

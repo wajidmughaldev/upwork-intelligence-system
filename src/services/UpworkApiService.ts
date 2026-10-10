@@ -1,5 +1,7 @@
 import { apiFetch } from './apiClient';
 
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+
 export interface UpworkConnectionStatus {
   connected: boolean;
   accountName: string | null;
@@ -144,9 +146,9 @@ export class UpworkApiService {
   }
 
   getOAuthConnectUrl(): string {
-    if (typeof window === 'undefined') return '/oauth/upwork/connect';
+    if (typeof window === 'undefined') return `${API_BASE_URL}/oauth/upwork/connect`;
     const returnTo = encodeURIComponent(window.location.origin + window.location.pathname);
-    return `/oauth/upwork/connect?return_to=${returnTo}`;
+    return `${API_BASE_URL}/oauth/upwork/connect?return_to=${returnTo}`;
   }
 }
 

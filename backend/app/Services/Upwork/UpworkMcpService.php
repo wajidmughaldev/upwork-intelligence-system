@@ -351,9 +351,11 @@ class UpworkMcpService
             if (str_contains($type, 'TALENT') || str_contains($type, 'FREELANCER')) {
                 // Minimum data: keep only the identifier needed for later calls
                 // and a display name. The raw MCP payload is discarded.
+                $displayName = $acc['name'] ?? $acc['company_name'] ?? $acc['user_name'] ?? null;
+
                 $talentAccounts[] = [
                     'org_uid' => (string) ($acc['org_uid'] ?? $acc['id'] ?? $acc['organization_id'] ?? ''),
-                    'name' => (string) ($acc['name'] ?? $acc['company_name'] ?? $acc['user_name'] ?? 'Freelancer Account'),
+                    'name' => is_string($displayName) && $displayName !== '' ? $displayName : null,
                 ];
             }
         }

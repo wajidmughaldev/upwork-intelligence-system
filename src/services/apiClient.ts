@@ -9,9 +9,16 @@ function getXsrfToken(): string | null {
   }
 }
 
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+
+function apiUrl(path: string): string {
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+}
+
 export async function ensureCsrfCookie(): Promise<boolean> {
   try {
-    const res = await fetch('/sanctum/csrf-cookie', {
+    const res = await fetch(apiUrl('/sanctum/csrf-cookie'), {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -72,7 +79,7 @@ export async function apiFetch<T = any>(
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(apiUrl(url), {
       ...options,
       credentials: 'include',
       headers: {
