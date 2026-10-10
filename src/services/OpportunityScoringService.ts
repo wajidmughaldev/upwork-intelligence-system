@@ -1,4 +1,5 @@
 import { UpworkJobDetail, UpworkJobSummary, UpworkProfileData } from './UpworkApiService';
+import { TrustedScoringPreferences } from './OpportunityPreferencesService';
 
 export type OpportunityClassification =
   | 'Strong Match'
@@ -200,8 +201,46 @@ function clientQuality(job: ScoringJob): OpportunityBreakdownItem {
   };
 }
 
+function personalPreferences(job: ScoringJob, preferences: TrustedScoringPreferences | null, jobSkills: string[]): OpportunityBreakdownItem {
+  if (!preferences) return item(WEIGHTS.personalPreferences, false, 0, 'Not configured with trusted preferences yet.');
+
+  let earned = 0;
+  let availableWeight = 0;
+  const reasons: string[] = [];
+
+  if (preferences.preferredJobTypes.length > 0 && job.jobType !== null) {
+    availableWeight += 2;
+    if (preferences.preferredJobTypes.includes(job.jobType)) {
+      earned += 2;
+      reasons.push(`${job.jobType === 'hourly' ? 'Hourly' : 'Fixed-price'} work is one of your confirmed preferred job types.`);
+    } else {
+      reasons.push(`${job.jobType === 'hourly' ? 'Hourly' : 'Fixed-price'} work is outside your confirmed preferred job types.`);
+    }
+  }
+
+  const strongestSkills = preferences.strongestSkills.map(normalizeSkill).filter(Boolean);
+  if (strongestSkills.length > 0 && jobSkills.length > 0) {
+    availableWeight += 3;
+    const matched = job.skills.find((skill, index) => strongestSkills.includes(jobSkills[index]));
+    if (matched) {
+      earned += 3;
+      reasons.push(`Job includes a confirmed strongest skill: ${matched}.`);
+    } else {
+      reasons.push('None of the listed job skills match your confirmed strongest skills.');
+    }
+  }
+
+  return {
+    earned,
+    maxWeight: WEIGHTS.personalPreferences,
+    availableWeight,
+    available: availableWeight > 0,
+    reason: reasons.join(' ') || 'Not configured with trusted preferences yet.',
+  };
+}
+
 export const opportunityScoringService = {
-  analyze(job: ScoringJob, profile: UpworkProfileData | null): OpportunityAnalysis {
+  analyze(job: ScoringJob, profile: UpworkProfileData | null, preferences: TrustedScoringPreferences | null = null): OpportunityAnalysis {
     const empty = (maxWeight: number, reason: string) => item(maxWeight, false, 0, reason);
     const profileSkills = (profile?.skills ?? []).map(normalizeSkill).filter(Boolean);
     const jobSkills = job.skills.map(normalizeSkill).filter(Boolean);
@@ -259,20 +298,33 @@ export const opportunityScoringService = {
 
     const client = clientQuality(job);
 
+    const trustedHourly = preferences?.minHourlyRate ?? null;
     const profileHourly = parseMoney(profile?.hourlyRate);
+    const hourlyBaseline = trustedHourly ?? profileHourly;
     const jobHourly = parseMoney(job.hourlyRate ?? (job.jobType === 'hourly' ? job.budget : null));
+    const fixedMinimum = preferences?.minFixedBudget ?? null;
+    const fixedBudget = job.jobType === 'fixed' ? parseMoney(job.budget) : null;
     const budgetFit =
-      job.jobType === 'hourly' && profileHourly !== null && jobHourly !== null
+      job.jobType === 'hourly' && hourlyBaseline !== null && jobHourly !== null
         ? item(
             WEIGHTS.budgetFit,
             true,
-            jobHourly >= profileHourly ? 10 : jobHourly >= profileHourly * 0.8 ? 7 : jobHourly >= profileHourly * 0.6 ? 4 : 0,
-            jobHourly >= profileHourly ? 'Hourly range meets your Upwork profile rate.' : 'Hourly rate is below your profile rate.'
+            jobHourly >= hourlyBaseline ? 10 : jobHourly >= hourlyBaseline * 0.8 ? 7 : jobHourly >= hourlyBaseline * 0.6 ? 4 : 0,
+            jobHourly >= hourlyBaseline
+              ? `Hourly range meets your ${trustedHourly !== null ? 'confirmed minimum hourly rate' : 'Upwork profile rate'}.`
+              : `Hourly rate is below your ${trustedHourly !== null ? 'confirmed minimum hourly rate' : 'Upwork profile rate'}.`
           )
+        : job.jobType === 'fixed' && fixedMinimum !== null && fixedBudget !== null
+          ? item(
+              WEIGHTS.budgetFit,
+              true,
+              fixedBudget >= fixedMinimum ? 10 : fixedBudget >= fixedMinimum * 0.8 ? 7 : fixedBudget >= fixedMinimum * 0.6 ? 4 : 0,
+              fixedBudget >= fixedMinimum ? 'Budget meets your confirmed fixed-price minimum.' : 'Budget is below your confirmed minimum.'
+            )
         : empty(
             WEIGHTS.budgetFit,
             job.jobType === 'fixed'
-              ? 'Fixed-price budget fit unavailable without trusted fixed-budget preference.'
+              ? fixedMinimum === null ? 'Fixed-price budget fit unavailable without trusted fixed-budget preference.' : 'Fixed-price budget unavailable.'
               : 'Hourly rate fit unavailable without reliable profile and job hourly rates.'
           );
 
@@ -295,7 +347,7 @@ export const opportunityScoringService = {
             job.connectsRequired > 12 ? 'Connect cost is high.' : 'Connect cost is reasonable.'
           );
 
-    const personalPreferences = empty(WEIGHTS.personalPreferences, 'Not configured with trusted preferences yet.');
+    const preferenceFit = personalPreferences(job, preferences, jobSkills);
 
     const breakdown = {
       technicalMatch,
@@ -305,7 +357,7 @@ export const opportunityScoringService = {
       budgetFit,
       jobClarity,
       connectEfficiency,
-      personalPreferences,
+      personalPreferences: preferenceFit,
     };
 
     const profileFitAvailable = technicalMatch.available || relevantExperience.available || portfolioProof.available;
@@ -333,6 +385,7 @@ export const opportunityScoringService = {
       job.client.paymentVerified === true ? 'Client payment is verified.' : null,
       job.client.rating !== null && job.client.rating >= 4.5 ? `Client rating is ${job.client.rating}.` : null,
       budgetFit.available && budgetFit.earned >= 7 ? budgetFit.reason : null,
+      preferenceFit.available && preferenceFit.earned > 0 ? preferenceFit.reason.split('. ')[0] + '.' : null,
       relevantHighlights >= 2 ? 'Two relevant Upwork portfolio highlights were found.' : relevantHighlights === 1 ? 'One relevant Upwork portfolio highlight was found.' : null,
     ].filter(Boolean).slice(0, 3) as string[];
 
@@ -341,6 +394,7 @@ export const opportunityScoringService = {
       job.client.paymentVerified === false ? 'Client payment is not verified.' : null,
       job.client.rating !== null && job.client.rating < 4.0 ? 'Client rating is below 4.0.' : null,
       budgetFit.available && budgetFit.earned < 7 ? budgetFit.reason : null,
+      preferenceFit.available && preferenceFit.earned === 0 ? preferenceFit.reason.split('. ')[0] + '.' : null,
       job.connectsRequired !== null && job.connectsRequired > 12 ? 'Connect cost is high.' : null,
     ].filter(Boolean).slice(0, 3) as string[];
 

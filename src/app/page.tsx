@@ -26,6 +26,7 @@ import {
 } from '../services/UpworkApiService';
 import { Job, Application, UserProfile, ApplicationStatus, SubmissionResultState, SubmissionResultData } from '../types';
 import { Loader2 } from 'lucide-react';
+import { opportunityPreferencesService, TrustedScoringPreferences } from '../services/OpportunityPreferencesService';
 
 type RealUpworkRefreshResult = {
   success: boolean;
@@ -54,6 +55,7 @@ export default function Home() {
   const [connectionStatus, setConnectionStatus] = useState<UpworkConnectionStatus | null>(null);
   const [connectsData, setConnectsData] = useState<UpworkConnectsData | null>(null);
   const [realProfileData, setRealProfileData] = useState<UpworkProfileData | null>(null);
+  const [trustedScoringPreferences, setTrustedScoringPreferences] = useState<TrustedScoringPreferences | null>(null);
   const [syncNotice, setSyncNotice] = useState<{ message: string; type: 'info' | 'error' } | null>(null);
 
   // Derived values for this slice
@@ -144,6 +146,10 @@ export default function Home() {
     };
 
     checkAuthSession();
+  }, []);
+
+  useEffect(() => {
+    setTrustedScoringPreferences(opportunityPreferencesService.load());
   }, []);
 
   // 2. Hydrate mock jobs & local preferences + fetch real Upwork data when authenticated
@@ -455,6 +461,7 @@ export default function Home() {
           {currentTab === 'jobs' && (
             <JobSearchView
               realProfileData={realProfileData}
+              trustedScoringPreferences={trustedScoringPreferences}
               onUnauthenticated={() => {
                 setAuthUser(null);
                 setAuthStatus('unauthenticated');
@@ -509,7 +516,15 @@ export default function Home() {
               profile={userProfile}
               realProfile={realProfileData}
               connectionStatus={connectionStatus}
+              trustedScoringPreferences={trustedScoringPreferences}
               onResyncUpwork={handleSyncUpwork}
+              onSaveScoringPreferences={(preferences) => {
+                setTrustedScoringPreferences(opportunityPreferencesService.save(preferences));
+              }}
+              onClearScoringPreferences={() => {
+                opportunityPreferencesService.clear();
+                setTrustedScoringPreferences(null);
+              }}
               onUpdateProfile={(updated) => {
                 const newProfile = upworkService.updateUserProfile(updated);
                 setUserProfile(newProfile);

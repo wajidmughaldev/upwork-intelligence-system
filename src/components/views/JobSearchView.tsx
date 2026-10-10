@@ -8,9 +8,11 @@ import {
   UpworkSearchParams,
 } from '../../services/UpworkApiService';
 import { opportunityScoringService, OpportunityAnalysis } from '../../services/OpportunityScoringService';
+import { TrustedScoringPreferences } from '../../services/OpportunityPreferencesService';
 
 interface JobSearchViewProps {
   realProfileData: UpworkProfileData | null;
+  trustedScoringPreferences: TrustedScoringPreferences | null;
   onUnauthenticated: () => void;
 }
 
@@ -65,7 +67,7 @@ function detailToSummary(detail: UpworkJobDetail): UpworkJobSummary {
   };
 }
 
-export const JobSearchView: React.FC<JobSearchViewProps> = ({ realProfileData, onUnauthenticated }) => {
+export const JobSearchView: React.FC<JobSearchViewProps> = ({ realProfileData, trustedScoringPreferences, onUnauthenticated }) => {
   const [activeSegment, setActiveSegment] = useState<Segment>('recommended');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [sortBy, setSortBy] = useState('best_match');
@@ -268,8 +270,8 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ realProfileData, o
 
     if (sortBy === 'opportunity_score') {
       return [...filtered].sort((a, b) => {
-        const aScore = opportunityScoringService.analyze(a, realProfileData).score;
-        const bScore = opportunityScoringService.analyze(b, realProfileData).score;
+        const aScore = opportunityScoringService.analyze(a, realProfileData, trustedScoringPreferences).score;
+        const bScore = opportunityScoringService.analyze(b, realProfileData, trustedScoringPreferences).score;
         if (aScore === null && bScore === null) return 0;
         if (aScore === null) return 1;
         if (bScore === null) return -1;
@@ -281,7 +283,7 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ realProfileData, o
       return [...filtered].sort((a, b) => (spendValue(b.client.totalSpent) ?? -1) - (spendValue(a.client.totalSpent) ?? -1));
     }
     return filtered;
-  }, [recommendedData, customSearchData, activeSegment, savedRefs, skippedRefs, seenJobsByReference, experienceLevels, clientRating, minClientSpend, connectsRequired, sortBy, realProfileData]);
+  }, [recommendedData, customSearchData, activeSegment, savedRefs, skippedRefs, seenJobsByReference, experienceLevels, clientRating, minClientSpend, connectsRequired, sortBy, realProfileData, trustedScoringPreferences]);
 
   const totalPages = Math.max(1, Math.ceil(visibleJobs.length / itemsPerPage));
   const currentJobs = visibleJobs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -344,7 +346,7 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ realProfileData, o
   const renderJobCard = (job: UpworkJobSummary, index: number) => {
     const saved = !!job.reference && savedRefs.includes(job.reference);
     const skipped = !!job.reference && skippedRefs.includes(job.reference);
-    const analysis = opportunityScoringService.analyze(job, realProfileData);
+    const analysis = opportunityScoringService.analyze(job, realProfileData, trustedScoringPreferences);
     return (
       <div key={`${job.reference ?? job.title ?? 'job'}-${index}`} className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-5 shadow-xs transition-all duration-150">
         <div className="flex items-start justify-between gap-4">
@@ -561,7 +563,7 @@ export const JobSearchView: React.FC<JobSearchViewProps> = ({ realProfileData, o
             {detailState === 'error' && <div className="py-10 text-center text-sm text-rose-700">{detailError}</div>}
             {detailState === 'loaded' && detail && (
               <div className="pt-4 space-y-4 text-sm">
-                {renderOpportunityAnalysis(opportunityScoringService.analyze(detail, realProfileData))}
+                {renderOpportunityAnalysis(opportunityScoringService.analyze(detail, realProfileData, trustedScoringPreferences))}
                 <p className="text-slate-700 whitespace-pre-wrap">{emptyLabel(detail.description)}</p>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
                   <div><span className="text-slate-400">Type</span><p className="font-medium">{emptyLabel(detail.jobType)}</p></div>

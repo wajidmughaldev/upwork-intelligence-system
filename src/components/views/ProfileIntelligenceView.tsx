@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UserProfile, PortfolioItem } from '../../types';
 import { UpworkProfileData, UpworkConnectionStatus } from '../../services/UpworkApiService';
+import { TrustedScoringPreferences } from '../../services/OpportunityPreferencesService';
 
 interface ProfileIntelligenceViewProps {
   profile: UserProfile;
   realProfile?: UpworkProfileData | null;
   connectionStatus?: UpworkConnectionStatus | null;
+  trustedScoringPreferences?: TrustedScoringPreferences | null;
   onResyncUpwork?: () => void;
+  onSaveScoringPreferences?: (preferences: TrustedScoringPreferences) => void;
+  onClearScoringPreferences?: () => void;
   onUpdateProfile: (updated: Partial<UserProfile>) => void;
 }
 
@@ -14,7 +18,10 @@ export const ProfileIntelligenceView: React.FC<ProfileIntelligenceViewProps> = (
   profile,
   realProfile,
   connectionStatus,
+  trustedScoringPreferences,
   onResyncUpwork,
+  onSaveScoringPreferences,
+  onClearScoringPreferences,
   onUpdateProfile,
 }) => {
   // Local state for editable fields
@@ -82,6 +89,28 @@ export const ProfileIntelligenceView: React.FC<ProfileIntelligenceViewProps> = (
   const [newPortOutcome, setNewPortOutcome] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  useEffect(() => {
+    if (!trustedScoringPreferences) return;
+    setMinFixedBudget(trustedScoringPreferences.minFixedBudget?.toString() ?? '');
+    setMinHourlyRate(trustedScoringPreferences.minHourlyRate?.toString() ?? '');
+    setPreferredJobTypes(trustedScoringPreferences.preferredJobTypes.map((type) => type === 'fixed' ? 'Fixed Price' : 'Hourly'));
+    setStrongestSkills(trustedScoringPreferences.strongestSkills);
+  }, [trustedScoringPreferences]);
+
+  const parseOptionalNumber = (value: string): number | null => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+  };
+
+  const currentTrustedPreferences = (): TrustedScoringPreferences => ({
+    preferredJobTypes: preferredJobTypes
+      .map((type) => type === 'Fixed Price' ? 'fixed' : type === 'Hourly' ? 'hourly' : null)
+      .filter((type): type is 'fixed' | 'hourly' => type !== null),
+    minFixedBudget: parseOptionalNumber(minFixedBudget),
+    minHourlyRate: parseOptionalNumber(minHourlyRate),
+    strongestSkills,
+  });
+
   const handleSaveAll = () => {
     onUpdateProfile({
       preferences: {
@@ -95,6 +124,7 @@ export const ProfileIntelligenceView: React.FC<ProfileIntelligenceViewProps> = (
       },
       portfolio,
     });
+    onSaveScoringPreferences?.(currentTrustedPreferences());
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2500);
   };
@@ -318,7 +348,7 @@ export const ProfileIntelligenceView: React.FC<ProfileIntelligenceViewProps> = (
                   </p>
                 </div>
                 <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600">
-                  Config Mode
+                  {trustedScoringPreferences ? 'Scoring preferences confirmed' : 'Preferences not yet confirmed for scoring'}
                 </span>
               </div>
 
@@ -566,6 +596,18 @@ export const ProfileIntelligenceView: React.FC<ProfileIntelligenceViewProps> = (
                       </button>
                     )}
                   </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                  <p className="text-[11px] text-slate-500">
+                    These scoring preferences affect real Upwork jobs only after you save them.
+                  </p>
+                  <button
+                    onClick={onClearScoringPreferences}
+                    className="text-xs font-medium text-slate-500 hover:text-rose-600 cursor-pointer whitespace-nowrap"
+                  >
+                    Clear scoring preferences
+                  </button>
                 </div>
               </div>
             </div>
