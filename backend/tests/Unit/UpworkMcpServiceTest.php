@@ -27,6 +27,7 @@ class UpworkMcpServiceTest extends TestCase
         $status = $this->service->connectionStatus();
 
         $this->assertFalse($status['connected']);
+        $this->assertEquals('disconnected', $status['status']);
         $this->assertNull($status['accountName']);
         $this->assertNull($status['role']);
     }
@@ -45,6 +46,7 @@ class UpworkMcpServiceTest extends TestCase
         $status = $this->service->connectionStatus();
 
         $this->assertTrue($status['connected']);
+        $this->assertEquals('connected', $status['status']);
         $this->assertEquals('John Doe', $status['accountName']);
         $this->assertEquals('Freelancer', $status['role']);
     }
@@ -63,6 +65,41 @@ class UpworkMcpServiceTest extends TestCase
         $status = $this->service->connectionStatus();
 
         $this->assertTrue($status['connected']);
+        $this->assertEquals('connected', $status['status']);
+        $this->assertNull($status['accountName']);
+        $this->assertNull($status['role']);
+    }
+
+    public function test_selection_required_status_is_explicit_and_not_connected(): void
+    {
+        UpworkConnection::create([
+            'provider' => 'upwork',
+            'access_token' => 'active_oauth_token',
+            'account_status' => 'selection_required',
+            'is_active' => true,
+        ]);
+
+        $status = $this->service->connectionStatus();
+
+        $this->assertFalse($status['connected']);
+        $this->assertEquals('selection_required', $status['status']);
+        $this->assertNull($status['accountName']);
+        $this->assertNull($status['role']);
+    }
+
+    public function test_no_eligible_account_status_is_explicit_and_not_connected(): void
+    {
+        UpworkConnection::create([
+            'provider' => 'upwork',
+            'access_token' => 'active_oauth_token',
+            'account_status' => 'no_eligible_account',
+            'is_active' => true,
+        ]);
+
+        $status = $this->service->connectionStatus();
+
+        $this->assertFalse($status['connected']);
+        $this->assertEquals('no_eligible_account', $status['status']);
         $this->assertNull($status['accountName']);
         $this->assertNull($status['role']);
     }
@@ -79,6 +116,8 @@ class UpworkMcpServiceTest extends TestCase
 
         $this->assertFalse($status['connected']);
         $this->assertEquals('pending', $status['status']);
+        $this->assertNull($status['accountName']);
+        $this->assertNull($status['role']);
     }
 
     public function test_write_operations_are_strictly_blocked_by_security_guard(): void

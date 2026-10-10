@@ -30,6 +30,8 @@ import { Loader2 } from 'lucide-react';
 type RealUpworkRefreshResult = {
   success: boolean;
   unauthenticated?: boolean;
+  connected: boolean;
+  status?: UpworkConnectionStatus['status'];
 };
 
 export default function Home() {
@@ -69,7 +71,7 @@ export default function Home() {
         setAuthUser(null);
         setAuthStatus('unauthenticated');
         setRefreshState('error');
-        return { success: false, unauthenticated: true };
+        return { success: false, connected: false, unauthenticated: true };
       }
 
       if (!statusRes.success || !statusRes.data) {
@@ -78,19 +80,19 @@ export default function Home() {
           message: 'Unable to refresh Upwork account data. Please try again.',
           type: 'error',
         });
-        return { success: false };
+        return { success: false, connected: false };
       }
 
       const status = statusRes.data;
       setConnectionStatus(status);
 
       if (!status.connected) {
-        if (status.status === 'disconnected' || status.status === 'no_eligible_account') {
+        if (status.status === 'disconnected') {
           setConnectsData(null);
           setRealProfileData(null);
         }
-        setRefreshState('error');
-        return { success: false };
+        setRefreshState('idle');
+        return { success: false, connected: false, status: status.status };
       }
 
       const [connectsRes, profileRes] = await Promise.all([
@@ -102,7 +104,7 @@ export default function Home() {
         setAuthUser(null);
         setAuthStatus('unauthenticated');
         setRefreshState('error');
-        return { success: false, unauthenticated: true };
+        return { success: false, connected: false, unauthenticated: true };
       }
 
       if (!connectsRes.success || !connectsRes.data || !profileRes.success || !profileRes.data) {
@@ -111,21 +113,21 @@ export default function Home() {
           message: 'Unable to refresh Upwork account data. Please try again.',
           type: 'error',
         });
-        return { success: false };
+        return { success: false, connected: true, status: status.status };
       }
 
       setConnectsData(connectsRes.data);
       setRealProfileData(profileRes.data);
 
       setRefreshState('success');
-      return { success: true };
+      return { success: true, connected: true, status: status.status };
     } catch {
       setRefreshState('error');
       setSyncNotice({
         message: 'Unable to refresh Upwork account data. Please try again.',
         type: 'error',
       });
-      return { success: false };
+      return { success: false, connected: false };
     }
   }, []);
 
