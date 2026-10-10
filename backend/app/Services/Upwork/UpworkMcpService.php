@@ -63,8 +63,8 @@ class UpworkMcpService
 
         return [
             'connected' => true,
-            'accountName' => $connection->account_name,
-            'role' => $connection->account_role,
+            'accountName' => $connection->account_name ?? 'Freelancer Account',
+            'role' => $connection->account_role ?? 'Freelancer',
         ];
     }
 

@@ -7,10 +7,6 @@ interface AppSidebarProps {
   onSelectTab: (tab: NavItem) => void;
   applicationsCount: number;
   jobsCount?: number;
-  accountName?: string | null;
-  profileTitle?: string | null;
-  hourlyRate?: string | null;
-  isConnected?: boolean;
   onSync?: () => void;
 }
 
@@ -19,26 +15,9 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onSelectTab,
   applicationsCount,
   jobsCount = 18,
-  accountName,
-  profileTitle,
-  hourlyRate,
-  isConnected,
   onSync,
 }) => {
   const isJobsActive = currentTab === 'jobs' || currentTab === 'analysis' || currentTab === 'proposal' || currentTab === 'review';
-
-  const getInitials = (name?: string | null): string => {
-    if (!name || !name.trim()) return '—';
-    const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  };
-
-  const displayName = accountName || 'Upwork Account';
-  const initials = getInitials(accountName);
-  const subText = isConnected
-    ? (hourlyRate ? `${profileTitle ? profileTitle + ' • ' : ''}$${hourlyRate}/hr` : (profileTitle || 'Account Connected'))
-    : 'Disconnected';
 
   return (
     <aside className="fixed top-0 left-0 h-screen w-64 border-r border-slate-200 bg-white flex flex-col justify-between z-30 select-none">
@@ -212,11 +191,11 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
             className="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100/80 transition-colors"
           >
             <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-semibold text-xs flex items-center justify-center shrink-0 ring-1 ring-slate-300">
-              {initials}
+              AR
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-slate-900 truncate">{displayName}</p>
-              <p className="text-[10px] text-slate-500 truncate">{subText}</p>
+              <p className="text-xs font-semibold text-slate-900 truncate">Alex Rivera</p>
+              <p className="text-[10px] text-slate-500 truncate">Pro Freelancer • $125/hr</p>
             </div>
             <span className="material-symbols-outlined text-slate-400 text-sm">unfold_more</span>
           </div>

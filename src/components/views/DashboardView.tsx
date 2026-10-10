@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { Job } from '../../types';
-import { UpworkConnectionStatus, UpworkConnectsData } from '../../services/UpworkApiService';
 
 interface DashboardViewProps {
-  availableConnects: number | null;
-  connectionStatus?: UpworkConnectionStatus | null;
-  connectsData?: UpworkConnectsData | null;
+  availableConnects: number;
   jobs: Job[];
   applicationsCount: number;
   onViewAnalysis: (job: Job) => void;
@@ -17,8 +14,6 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   availableConnects,
-  connectionStatus,
-  connectsData,
   jobs,
   applicationsCount,
   onViewAnalysis,
@@ -79,33 +74,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-500">Upwork Account</span>
-            <span className={`flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border ${
-              connectionStatus?.connected
-                ? 'text-emerald-600 bg-emerald-50 border-emerald-100'
-                : 'text-amber-700 bg-amber-50 border-amber-200'
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${
-                connectionStatus?.connected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
-              }`}></span>
-              {connectionStatus?.connected ? 'Active' : 'Offline'}
+            <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Active
             </span>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-xl font-bold tracking-tight text-slate-900">
-              {connectionStatus?.connected
-                ? 'Connected'
-                : connectionStatus?.status === 'selection_required'
-                ? 'Selection Required'
-                : connectionStatus?.status === 'no_eligible_account'
-                ? 'No Eligible Account'
-                : connectionStatus?.status === 'reconnect_required'
-                ? 'Reconnect Required'
-                : 'Disconnected'}
-            </span>
+            <span className="text-xl font-bold tracking-tight text-slate-900">Connected</span>
           </div>
-          <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500 truncate">
-            <span className="material-symbols-outlined text-sm text-slate-400">account_circle</span>
-            <span className="truncate">{connectionStatus?.accountName || 'No account connected'}</span>
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+            <span className="material-symbols-outlined text-sm text-slate-400">schedule</span>
+            <span>Last synced 4m ago</span>
           </div>
         </div>
 
@@ -116,14 +95,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="material-symbols-outlined text-blue-600 text-lg">toll</span>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-xl font-bold tracking-tight text-slate-900">
-              {availableConnects !== null ? availableConnects : '—'}
-            </span>
+            <span className="text-xl font-bold tracking-tight text-slate-900">{availableConnects}</span>
             <span className="text-xs text-slate-400">tokens</span>
           </div>
-          <div className="mt-2 text-xs text-slate-500 font-medium flex items-center gap-1">
-            <span className="material-symbols-outlined text-sm text-slate-400">info</span>
-            <span>{connectsData?.membershipType ? `${connectsData.membershipType} Plan` : 'Upwork Balance'}</span>
+          <div className="mt-2 text-xs text-emerald-600 font-medium flex items-center gap-1">
+            <span className="material-symbols-outlined text-sm">trending_up</span>
+            <span>+30 renewed 2 days ago</span>
           </div>
         </div>
 
