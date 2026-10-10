@@ -170,8 +170,9 @@ export const opportunityScoringService = {
     const profileSkills = (profile?.skills ?? []).map(normalizeSkill).filter(Boolean);
     const jobSkills = job.skills.map(normalizeSkill).filter(Boolean);
     const profileText = `${profile?.title ?? ''} ${profile?.overview ?? ''}`.trim();
-    const matchedSkills = job.skills.filter((skill, index) => profileSkills.includes(jobSkills[index]));
-    const missingSkills = job.skills.filter((skill, index) => !profileSkills.includes(jobSkills[index]));
+    const hasComparableSkills = profileSkills.length > 0 && jobSkills.length > 0;
+    const matchedSkills = hasComparableSkills ? job.skills.filter((skill, index) => profileSkills.includes(jobSkills[index])) : [];
+    const missingSkills = hasComparableSkills ? job.skills.filter((skill, index) => !profileSkills.includes(jobSkills[index])) : [];
 
     const technicalMatch =
       jobSkills.length && profileSkills.length
@@ -186,19 +187,21 @@ export const opportunityScoringService = {
         : empty(WEIGHTS.technicalMatch, 'Job skills or real profile skills are unavailable.');
 
     const profileWords = normalizedWords(profileText);
-    const jobTitleWords = normalizedWords(job.title);
-    const experienceHits = jobSkills.filter((skill) => profileWords.has(skill) || jobTitleWords.has(skill));
+    const experienceHits = jobSkills.filter((skill) => profileWords.has(skill));
     const relevantExperience =
-      profileText.length > 0
+      profileText.length > 0 && jobSkills.length > 0
         ? item(
             WEIGHTS.relevantExperience,
             true,
             jobSkills.length ? (experienceHits.length / jobSkills.length) * WEIGHTS.relevantExperience : 0,
             experienceHits.length
-              ? `${experienceHits.length} listed skills appear in the real profile title/overview or job title.`
+              ? `${experienceHits.length} listed skills appear in the real profile title/overview.`
               : 'No listed skills appear in the real profile title/overview.'
           )
-        : empty(WEIGHTS.relevantExperience, 'Real profile title/overview unavailable.');
+        : empty(
+            WEIGHTS.relevantExperience,
+            profileText.length === 0 ? 'Real profile title/overview unavailable.' : 'Job skills unavailable for profile experience comparison.'
+          );
 
     const portfolio = profile?.portfolioHighlights ?? [];
     const relevanceTerms = new Set([...jobSkills, ...normalizedWords(job.title)]);
@@ -222,7 +225,7 @@ export const opportunityScoringService = {
     const client = clientQuality(job);
 
     const profileHourly = parseMoney(profile?.hourlyRate);
-    const jobHourly = parseMoney(job.hourlyRate);
+    const jobHourly = parseMoney(job.hourlyRate ?? (job.jobType === 'hourly' ? job.budget : null));
     const budgetFit =
       job.jobType === 'hourly' && profileHourly !== null && jobHourly !== null
         ? item(
@@ -283,7 +286,7 @@ export const opportunityScoringService = {
         evidenceCoverage,
         breakdown,
         whyMatch: [],
-        whySkip: ['Real Upwork profile evidence is unavailable.'],
+        whySkip: [profile ? 'Insufficient real profile-fit evidence is available.' : 'Real Upwork profile evidence is unavailable.'],
         matchedSkills,
         missingSkills,
       };
