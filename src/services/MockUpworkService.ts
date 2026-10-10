@@ -471,16 +471,6 @@ export class MockUpworkService {
   private loadFromStorage() {
     if (!this.isClient()) return;
     try {
-      const savedConnects = localStorage.getItem('uoi_connects');
-      if (savedConnects !== null) {
-        this.connects = Number(savedConnects);
-      }
-
-      const savedConnected = localStorage.getItem('uoi_connected');
-      if (savedConnected !== null) {
-        this.connected = savedConnected === 'true';
-      }
-
       const savedApps = localStorage.getItem('uoi_applications');
       if (savedApps) {
         this.applications = JSON.parse(savedApps);
@@ -507,8 +497,6 @@ export class MockUpworkService {
   private persistStorage() {
     if (!this.isClient()) return;
     try {
-      localStorage.setItem('uoi_connects', String(this.connects));
-      localStorage.setItem('uoi_connected', String(this.connected));
       localStorage.setItem('uoi_applications', JSON.stringify(this.applications));
       localStorage.setItem('uoi_profile', JSON.stringify(this.profile));
 

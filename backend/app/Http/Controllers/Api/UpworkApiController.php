@@ -226,8 +226,8 @@ class UpworkApiController extends Controller
             foreach ($candidates as $idx => $c) {
                 $safe[] = [
                     'id' => (string) $idx,
-                    'name' => (string) ($c['name'] ?? 'Freelancer Account'),
-                    'role' => 'Freelancer',
+                    'name' => isset($c['name']) && is_string($c['name']) && $c['name'] !== '' ? $c['name'] : null,
+                    'role' => isset($c['role']) && is_string($c['role']) && $c['role'] !== '' ? $c['role'] : null,
                 ];
             }
 

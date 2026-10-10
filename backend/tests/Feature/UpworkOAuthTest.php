@@ -60,7 +60,11 @@ class UpworkOAuthTest extends TestCase
         Sanctum::actingAs(User::factory()->create());
         $responseAuth = $this->postJson('/api/upwork/disconnect');
         $responseAuth->assertStatus(200)
-            ->assertJson(['connected' => false]);
+            ->assertJson([
+                'success' => true,
+                'connected' => false,
+                'message' => 'Upwork account disconnected successfully.',
+            ]);
 
         $this->assertNull(UpworkConnection::active());
     }

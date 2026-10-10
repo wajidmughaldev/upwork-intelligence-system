@@ -20,7 +20,7 @@ class UpworkMcpService
      * Get safe frontend connection status.
      * Never exposes access tokens, refresh tokens, org_uid, or internal MCP identifiers.
      *
-     * @return array{connected: bool, accountName: string|null, role: string|null, status?: string}
+     * @return array{connected: bool, status: string, accountName: string|null, role: string|null}
      */
     public function connectionStatus(): array
     {
@@ -29,6 +29,7 @@ class UpworkMcpService
         if (! $connection || empty($connection->access_token)) {
             return [
                 'connected' => false,
+                'status' => 'disconnected',
                 'accountName' => null,
                 'role' => null,
             ];
@@ -63,8 +64,9 @@ class UpworkMcpService
 
         return [
             'connected' => true,
-            'accountName' => $connection->account_name ?? 'Freelancer Account',
-            'role' => $connection->account_role ?? 'Freelancer',
+            'status' => 'connected',
+            'accountName' => $connection->account_name,
+            'role' => $connection->account_role,
         ];
     }
 
@@ -351,9 +353,11 @@ class UpworkMcpService
             if (str_contains($type, 'TALENT') || str_contains($type, 'FREELANCER')) {
                 // Minimum data: keep only the identifier needed for later calls
                 // and a display name. The raw MCP payload is discarded.
+                $displayName = $acc['name'] ?? $acc['company_name'] ?? $acc['user_name'] ?? null;
+
                 $talentAccounts[] = [
                     'org_uid' => (string) ($acc['org_uid'] ?? $acc['id'] ?? $acc['organization_id'] ?? ''),
-                    'name' => (string) ($acc['name'] ?? $acc['company_name'] ?? $acc['user_name'] ?? 'Freelancer Account'),
+                    'name' => is_string($displayName) && $displayName !== '' ? $displayName : null,
                 ];
             }
         }

@@ -55,6 +55,7 @@ class UpworkApiTest extends TestCase
         $response->assertStatus(200)
             ->assertExactJson([
                 'connected' => false,
+                'status' => 'disconnected',
                 'accountName' => null,
                 'role' => null,
             ]);
@@ -80,6 +81,7 @@ class UpworkApiTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'connected' => true,
+                'status' => 'connected',
                 'accountName' => 'Wajid Mughal',
                 'role' => 'Freelancer',
             ]);
